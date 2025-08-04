@@ -1,0 +1,59 @@
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from datetime import datetime
+from dotenv import load_dotenv
+import os
+from app.routes import home, about, services, pricing, contact
+
+# Load environment variables
+load_dotenv()
+
+# Create app
+app = FastAPI()
+
+# Mount static files and set up templates
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["current_year"] = datetime.now().year
+
+# Middleware to add current year to request state
+@app.middleware("http")
+async def add_year_to_context(request: Request, call_next):
+    request.state.year = datetime.now().year
+    response = await call_next(request)
+    return response
+
+# CORS setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Test root route
+@app.get("/api")
+def root():
+    return {"message": "Dynastra Tech API is running!"}
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
+def test_home(request: Request):
+    return templates.TemplateResponse("pages/home.html", {"request": request})
+
+
+app.include_router(home.router)
+app.include_router(about.router)
+app.include_router(services.router)
+app.include_router(pricing.router)
+app.include_router(contact.router)
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
+def fallback_home(request: Request):
+    return templates.TemplateResponse("pages/home.html", {"request": request})

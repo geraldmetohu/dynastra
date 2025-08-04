@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="section-hero text-white text-center fade-in" style="background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(10px);">
+  <div class="container">
+    <h1 class="section-title"></h1>
+    <p class="section-description"></p>
+  </div>
+</section>
+<section class="section text-center">
+  <h1 class="section-title">Get in Touch with Dynastra</h1>
+  <p class="section-description">Whether you're launching a business or scaling a digital platform — our team is ready to support you with precision and innovation.</p>
+</section>
+
+<!-- WHY CONTACT US -->
+<section class="section section-transparent fade-in">
+  <div class="container text-center">
+    <h2 class="section-title">Why Choose Dynastra?</h2>
+    <p class="section-description">From strategy to execution, we deliver scalable digital solutions aligned with your vision. Here’s why businesses work with us:</p>
+    <div class="why-us-grid">
+      <div class="why-item">
+        <h4>Initial Consultation</h4>
+        <p>No-commitment sessions to assess your needs and suggest the right solutions.</p>
+      </div>
+      <div class="why-item">
+        <h4>Tailored Solutions</h4>
+        <p>Custom-built websites, systems, and tools designed for your unique business goals.</p>
+      </div>
+      <div class="why-item">
+        <h4>London-Based Experts</h4>
+        <p>Our in-house team operates from North London, ensuring quick, local support.</p>
+      </div>
+      <div class="why-item">
+        <h4>Transparent Pricing</h4>
+        <p>No surprises. Clear breakdowns, scalable packages, and honest recommendations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section section-light fade-in">
+  <div class="container text-center">
+    <h2 class="section-title">How We Work</h2>
+    <div class="process-timeline">
+      <div class="step">
+        <span class="step-number">1</span>
+        <h4>Initial Enquiry</h4>
+        <p>Use the contact form to describe your project, idea, or challenge.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">2</span>
+        <h4>Free Consultation</h4>
+        <p>We’ll respond within 24 hours to schedule a discovery call or email consultation.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">3</span>
+        <h4>Tailored Proposal</h4>
+        <p>Receive a personalized offer outlining deliverables, timelines, and pricing.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">4</span>
+        <h4>Project Delivery</h4>
+        <p>Once approved, we build, iterate, and deliver — with full support throughout.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT GRID -->
+<section class="section section-transparent fade-in">
+  <div class="container contact-grid">
+
+    <!-- CONTACT INFO -->
+    <div class="contact-info">
+      <h2 class="section-title">Contact Details</h2>
+      <p><strong>Dynastra Tech Ltd</strong></p>
+      <p>Email: <a href="mailto:info@dynastratech.com">info@dynastratech.com</a></p>
+      <p>Phone: <a href="tel:+447301463716">+44 7301 463716</a></p>
+      <p>Office: North London, Greater London, United Kingdom</p>
+
+      <div class="mt-4">
+        <h3 class="heading-sm">Business Hours</h3>
+        <ul>
+          <li>Monday – Friday: 9:00 AM – 6:00 PM</li>
+          <li>Saturday – Sunday: Closed</li>
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <h3 class="heading-sm">Follow Us</h3>
+        <div class="social-icons">
+          <a href="#" target="_blank" class="social-link"><i class="fab fa-linkedin"></i></a>
+          <a href="#" target="_blank" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" target="_blank" class="social-link"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT FORM -->
+    <div class="contact-form">
+      {% if submitted %}
+        <div class="form-success">
+          ✅ Your message has been sent successfully.
+        </div>
+      {% endif %}
+
+      <form action="/contact" method="post" class="form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" name="name" id="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" name="email" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <input type="text" name="subject" id="subject">
+        </div>
+        <div class="form-group">
+          <label for="message">Your Message</label>
+          <textarea id="message" name="message" rows="6" required></textarea>
+        </div>
+
+        <button type="submit" class="button button-glow">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="section fade-in text-center">
+  <div class="container">
+    <h2 class="section-title">Let's Build Something Brilliant</h2>
+    <p class="section-description">Every great idea starts with a simple message. Tell us yours — and we’ll bring it to life.</p>
+  </div>
+</section>
+
+<!-- JS for plan autofill -->
+<script>
+  window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const plan = urlParams.get("plan");
+    const messageField = document.getElementById("message");
+
+    if (plan && messageField) {
+      const planName = plan.replace(/-/g, " ");
+      const message = `Hi, I am interested in your ${planName} plan. Please email or call me to get more details.`;
+      messageField.value = message;
+    }
+  };
+</script>
+
+{% endblock %}

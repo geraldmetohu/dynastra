@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynastra Tech</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- AOS CSS -->
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+
+  <!-- Navbar -->
+  {% include 'components/navbar.html' %}
+
+  <!-- Page Content -->
+  <main class="container">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- Footer -->
+  {% include 'components/footer.html' %}
+<!-- AOS JS -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init();
+</script>
+  <script>
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('active');
+    }
+    function toggleSubmenu() {
+      document.getElementById('mobileSubmenu').classList.toggle('active');
+    }
+  </script>
+<canvas id="auroraCanvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;"></canvas>
+<script>
+  const canvas = document.getElementById('auroraCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let lights = [];
+  for (let i = 0; i < 8; i++) {
+    lights.push({
+      x: Math.random() * canvas.width+8,
+      y: Math.random() * canvas.height+8 / 2,
+      length: Math.random() * 100 + 200,
+      amplitude: Math.random() * 60 + 40,
+      frequency: Math.random() * 0.004 + 0.002,
+      offset: Math.random() * 100,
+      hue: 120 + Math.random() * 100
+    });
+  }
+
+  let mouseX = canvas.width / 4;
+  window.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+  });
+
+  function drawAurora() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+
+    for (let light of lights) {
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x++) {
+        let wave1 = Math.sin(x * light.frequency + light.offset) * light.amplitude;
+        let wave2 = Math.sin(x * light.frequency * 0.6 + light.offset * 1.2) * light.amplitude * 0.4;
+        let y = light.y + wave1 + wave2;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+
+      let distanceToMouse = Math.abs(light.x - mouseX);
+      let glow = Math.max(0, 1 - distanceToMouse / 400);
+      let greenIntensity = Math.floor(160 + glow * 80);
+
+      ctx.strokeStyle = `rgba(0, ${greenIntensity}, 180, 0.2)`;
+      ctx.lineWidth = 4 + glow * 6;
+      ctx.shadowColor = `rgba(0, ${greenIntensity}, 180, 0.6)`;
+      ctx.shadowBlur = 20 + glow * 20;
+      ctx.stroke();
+
+      light.offset += 0.008;
+    }
+
+    requestAnimationFrame(drawAurora);
+  }
+
+  drawAurora();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+<!-- At the bottom of your base.html -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const firebaseConfig = {
+      apiKey: "AIzaSyA9sIX3urv0UxgRXbuvqs_v9H-HmoxHZ9Q",
+      authDomain: "dynastratech.firebaseapp.com",
+      projectId: "dynastratech",
+      storageBucket: "dynastratech.firebasestorage.app",
+      messagingSenderId: "1087353230370",
+      appId: "1:1087353230370:web:b8d27e2dcf99ec05ac267b",
+      measurementId: "G-YVLXQWC61S"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(); // ✅ This line only works with compat version
+
+    const adminEmails = ["geraldmetohu@gmail.com", "metohu.gerald@gmail.com", "info@dynastra.co.uk"];
+
+    document.querySelectorAll(".btn-login").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const email = prompt("Enter Email:");
+        const password = prompt("Enter Password:");
+
+        auth.signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            const userEmail = userCredential.user.email;
+
+            fetch("/set-session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: userEmail })
+            }).then(() => {
+              if (adminEmails.includes(userEmail)) {
+                window.location.href = "/admin/dashboard";
+              } else {
+                window.location.href = "/user-dashboard";
+              }
+            });
+          })
+          .catch((error) => {
+            alert("Login failed: " + error.message);
+          });
+      });
+    });
+  });
+</script>
+
+
+
+  <!--
+<script>
+// Minimal Perlin Noise implementation
+class SimplexNoise {
+  constructor() { this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]]; this.p = Array.from({ length: 256 }, () => Math.floor(Math.random()*256)); this.perm = []; for(let i=0;i<512;i++) this.perm[i]=this.p[i&255]; }
+  dot(g, x, y) { return g[0]*x + g[1]*y; }
+  noise(xin, yin) {
+    const F2 = 0.5*(Math.sqrt(3)-1), G2 = (3-Math.sqrt(3))/6;
+    const s=(xin+yin)*F2, i=Math.floor(xin+s), j=Math.floor(yin+s);
+    const t=(i+j)*G2, X0=i-t, Y0=j-t, x0=xin-X0, y0=yin-Y0;
+    const i1 = x0>y0 ? 1 : 0, j1 = x0>y0 ? 0 : 1;
+    const x1=x0-i1+G2, y1=y0-j1+G2;
+    const x2=x0-1+2*G2, y2=y0-1+2*G2;
+    const ii = i & 255, jj = j & 255;
+    const gi0 = this.perm[ii+this.perm[jj]] % 12;
+    const gi1 = this.perm[ii+i1+this.perm[jj+j1]] % 12;
+    const gi2 = this.perm[ii+1+this.perm[jj+1]] % 12;
+    let n0 = Math.max(0.5 - x0*x0 - y0*y0, 0);
+    let n1 = Math.max(0.5 - x1*x1 - y1*y1, 0);
+    let n2 = Math.max(0.5 - x2*x2 - y2*y2, 0);
+    n0 = n0*n0 * this.dot(this.grad3[gi0], x0, y0);
+    n1 = n1*n1 * this.dot(this.grad3[gi1], x1, y1);
+    n2 = n2*n2 * this.dot(this.grad3[gi2], x2, y2);
+    return 70 * (n0 + n1 + n2);
+  }
+}
+
+(function() {
+  const canvas = document.getElementById("bg-canvas");
+  const ctx = canvas.getContext("2d");
+  let width, height;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const noise = new SimplexNoise();
+  const particles = Array.from({ length: 400 }, () => ({
+    x: Math.random()*width,
+    y: Math.random()*height,
+    speed: Math.random()*0.5 + 0.2
+  }));
+
+  function draw() {
+    ctx.fillStyle = "rgba(10,10,15,0.05)";
+    ctx.fillRect(0, 0, width, height);
+    particles.forEach(p => {
+      const angle = noise.noise(p.x * 0.002, p.y * 0.002) * Math.PI * 2;
+      p.x += Math.cos(angle) * p.speed;
+      p.y += Math.sin(angle) * p.speed;
+      if (p.x<0||p.x>width||p.y<0||p.y>height) {
+        p.x = Math.random()*width;
+        p.y = Math.random()*height;
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.2, 0, Math.PI*2);
+      ctx.fillStyle = "#18BC9C";
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+</script>
+-->
+
+ <!-- 
+<script>
+  (() => {
+    const canvas = document.getElementById("bg-canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initBars();
+    }
+    window.addEventListener('resize', resize);
+
+    let bars = [];
+    const barCount = 60;
+    function initBars() {
+      bars = [];
+      const width = canvas.width;
+      const height = canvas.height;
+      const barWidth = width / barCount;
+      for (let i = 0; i < barCount; i++) {
+        bars.push({
+          x: i * barWidth,
+          width: barWidth * 0.6,
+          height: Math.random() * height,
+          speed: (Math.random() * 0.5 + 0.2)
+        });
+      }
+    }
+
+    function draw() {
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      bars.forEach(bar => {
+        bar.height += bar.speed;
+        if (bar.height > height || bar.height < height * 0.1) {
+          bar.speed *= -1;
+        }
+        const y = height - bar.height;
+        const hue = 200 + (bar.height / height) * 100;
+        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+        ctx.fillRect(bar.x, y, bar.width, bar.height);
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+  })();
+</script>
+-->
+<!--
+  <script>
+    const canvas = document.getElementById("bg-canvas");
+    const ctx = canvas.getContext("2d");
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    const particles = Array.from({ length: 80 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      r: Math.random() * 2 + 1,
+      color: Math.random() > 0.5 ? '#18BC9C' : '#FFD700'
+    }));
+
+    function drawGradientFlow() {
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#091921');
+      gradient.addColorStop(0.5, '#123456');
+      gradient.addColorStop(1, '#091921');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    function drawParticles() {
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dist = Math.hypot(p.x - q.x, p.y - q.y);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      drawGradientFlow();
+      drawParticles();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    window.addEventListener('scroll', () => {
+      particles.forEach(p => {
+        p.vx += (Math.random() - 0.5) * 0.5;
+        p.vy += (Math.random() - 0.5) * 0.5;
+      });
+    });
+</script>
+-->
+</body>
+</html>
