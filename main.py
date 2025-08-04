@@ -6,7 +6,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 from app.routes import home, about, services, pricing, contact
-
+from fastapi import FastAPI, Request, Form, Depends
+from fastapi.responses import RedirectResponse, HTMLResponse
+from starlette.middleware.sessions import SessionMiddleware
 # Load environment variables
 load_dotenv()
 
@@ -57,3 +59,34 @@ from fastapi.responses import HTMLResponse
 @app.get("/", response_class=HTMLResponse)
 def fallback_home(request: Request):
     return templates.TemplateResponse("pages/home.html", {"request": request})
+
+
+
+
+ADMIN_EMAILS = ["gerald@metohu.com", "metohu.gerald@gmail.com", "info@dynastra.co.uk"]
+
+app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("FLASK_SECRET_KEY", "dev-key"))
+
+# Login form route (GET)
+@app.get("/login", response_class=HTMLResponse)
+async def login_form(request: Request):
+    return templates.TemplateResponse("pages/login.html", {"request": request})
+
+# Login form handler (POST)
+@app.post("/login")
+async def login_submit(request: Request, email: str = Form(...)):
+    request.session["user_email"] = email
+    if email in ADMIN_EMAILS:
+        return RedirectResponse("/admin/dashboard", status_code=303)
+    return RedirectResponse("/user-dashboard", status_code=303)
+
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    if request.session.get("user_email") not in ADMIN_EMAILS:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse("admin/dashboard.html", {"request": request})
+
+@app.get("/user-dashboard", response_class=HTMLResponse)
+async def user_dashboard(request: Request):
+    return templates.TemplateResponse("user/dashboard.html", {"request": request})
