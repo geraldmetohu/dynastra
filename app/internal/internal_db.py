@@ -5,5 +5,5 @@ INTERNAL_DB = {
     "clients": [],
     "invoices": [],
     "messages": [],
-    "repeat_rules": []
+    "repeat_rules": [],
 }
