@@ -7,6 +7,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
 from dotenv import load_dotenv
 import os
+from app.internal.load_data import load_internal_data
+from app.internal.internal_db import INTERNAL_DB
 
 # Load environment variables
 load_dotenv()
@@ -60,6 +62,8 @@ async def login_form(request: Request):
 async def login_submit(request: Request, email: str = Form(...)):
     request.session["user_email"] = email
     if email in ADMIN_EMAILS:
+        await load_internal_data()  # load all Prisma records into memory
+
         return RedirectResponse("/admin/dashboard", status_code=303)
     return RedirectResponse("/user-dashboard", status_code=303)
 
@@ -74,6 +78,19 @@ async def admin_dashboard(request: Request):
 @app.get("/user-dashboard", response_class=HTMLResponse)
 async def user_dashboard(request: Request):
     return templates.TemplateResponse("user/dashboard.html", {"request": request})
+
+from fastapi import FastAPI
+from app.backend.crud_clients import router as client_router, init_db
+
+app = FastAPI()
+
+@app.on_event("startup")
+async def startup():
+    await init_db()
+
+app.include_router(client_router)
+from app.backend.crud_invoice import router as invoice_router
+app.include_router(invoice_router)
 
 # Include other routes
 from app.routes import home, about, services, pricing, contact

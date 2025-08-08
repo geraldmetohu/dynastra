@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Client List</h2>
+            <a href="/admin/new_client.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Create Client</a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th class="px-4 py-2 text-left">#</th>
+                        <th class="px-4 py-2 text-left">Name</th>
+                        <th class="px-4 py-2 text-left">Email</th>
+                        <th class="px-4 py-2 text-left">Phone</th>
+                        <th class="px-4 py-2 text-left">Client Type</th>
+                        <th class="px-4 py-2 text-left">Task(s)</th>
+                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left">Date Created</th>
+                        <th class="px-4 py-2 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for client in clients %}
+                    <tr>
+                        <td class="px-4 py-2">{{ loop.index }}</td>
+                        <td class="px-4 py-2">{{ client.name }} {{ client.surname }}</td>
+                        <td class="px-4 py-2">{{ client.email }}</td>
+                        <td class="px-4 py-2">{{ client.phone }}</td>
+                        <td class="px-4 py-2">{{ client.client_type }}</td>
+                        <td class="px-4 py-2">
+                            {% for task in client.tasks %}
+                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1">{{ task }}</span>
+                            {% endfor %}
+                        </td>
+                        <td class="px-4 py-2">
+                            <span class="inline-block px-2 py-1 text-xs rounded 
+                                {% if client.status == 'Paid' %}bg-green-100 text-green-800
+                                {% elif client.status == 'Finished' %}bg-emerald-100 text-emerald-800
+                                {% elif client.status == 'Started' %}bg-blue-100 text-blue-800
+                                {% elif client.status == 'Agreed' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ client.status }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2">{{ client.date_created.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-4 py-2 space-y-1">
+                            <a href="/admin/client/edit/{{ client.id }}" class="text-indigo-600 hover:underline block">Edit</a>
+                            <a href="/admin/client/delete/{{ client.id }}" class="text-red-600 hover:underline block">Delete</a>
+                            <a href="/admin/invoice/create/{{ client.id }}" class="text-green-600 hover:underline block">Send Invoice</a>
+                            <a href="/admin/client/{{ client.id }}/invoices" class="text-purple-600 hover:underline block">View Invoices</a>
+                            <a href="/admin/marketing/send/{{ client.id }}" class="text-yellow-600 hover:underline block">Send Marketing</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-6 text-gray-500">No clients found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

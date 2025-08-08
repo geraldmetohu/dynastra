@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Invoice</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    .invoice-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 900px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      font-weight: 600;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .services-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .services-table th, .services-table td {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    .btn {
+      padding: 0.6rem 1.2rem;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #005fa3;
+    }
+    .flex-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .flex-row > div {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <h2>Generate Invoice</h2>
+
+<form id="invoice-form" method="post" enctype="multipart/form-data" action="/admin/invoice/create">
+      <div class="form-group">
+        <label for="client">Select Client:</label>
+        <select id="client" name="client">
+          <option value="">-- Select Client --</option>
+          <!-- Populate this with actual client names -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="invoiceType">Invoice Type:</label>
+        <select id="invoiceType" name="invoiceType">
+          <option value="one-time">One-Time</option>
+          <option value="monthly">Monthly</option>
+          <option value="annual">Annual</option>
+        </select>
+      </div>
+
+      <div class="form-group flex-row">
+        <div>
+          <label for="invoiceDate">Invoice Date:</label>
+          <input type="date" id="invoiceDate" name="invoiceDate" />
+        </div>
+        <div>
+          <label for="dueDate">Due Date:</label>
+          <input type="date" id="dueDate" name="dueDate" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Services:</label>
+        <table class="services-table" id="services-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Price (£)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="services-body">
+            <tr>
+              <td><input type="text" name="service_description[]" /></td>
+              <td><input type="number" name="service_price[]" step="0.01" /></td>
+              <td><button type="button" onclick="removeRow(this)">Remove</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn" onclick="addRow()">Add Service</button>
+      </div>
+
+      <div class="form-group">
+        <label for="total">Total Amount (£):</label>
+        <input type="text" id="total" name="total" readonly />
+      </div>
+
+      <h3>Bank Details</h3>
+      <div class="form-group">
+        <label for="accountName">Account Name:</label>
+        <input type="text" id="accountName" name="accountName" />
+      </div>
+      <div class="form-group flex-row">
+        <div>
+          <label for="sortCode">Sort Code:</label>
+          <input type="text" id="sortCode" name="sortCode" />
+        </div>
+        <div>
+          <label for="accountNumber">Account Number:</label>
+          <input type="text" id="accountNumber" name="accountNumber" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="iban">IBAN:</label>
+        <input type="text" id="iban" name="iban" />
+      </div>
+
+      <div class="form-group">
+        <label for="companyLogo">Company Logo (optional):</label>
+        <input type="file" id="companyLogo" name="companyLogo" />
+      </div>
+
+      <button type="submit" class="btn">Generate Invoice</button>
+    </form>
+  </div>
+
+  <script>
+    function addRow() {
+      const table = document.getElementById("services-body");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" name="service_description[]" /></td>
+        <td><input type="number" name="service_price[]" step="0.01" /></td>
+        <td><button type="button" onclick="removeRow(this)">Remove</button></td>
+      `;
+      table.appendChild(row);
+    }
+
+    function removeRow(button) {
+      const row = button.closest("tr");
+      row.remove();
+    }
+
+    document.getElementById("invoice-form").addEventListener("input", () => {
+      const prices = document.querySelectorAll("input[name='service_price[]']");
+      let total = 0;
+      prices.forEach(p => {
+        total += parseFloat(p.value) || 0;
+      });
+      document.getElementById("total").value = total.toFixed(2);
+    });
+  </script>
+</body>
+</html>
