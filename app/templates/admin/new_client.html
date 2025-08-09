@@ -1,121 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if client %}Edit{% else %}Add{% endif %} Client</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-800 min-h-screen p-8">
+{% extends "base.html" %}
 
-    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-2xl font-bold mb-6 text-center">
-            {% if client %}Edit{% else %}Add New{% endif %} Client
-        </h2>
+{% block content %}
+<div class="bg-gray-100 text-gray-800 min-h-screen p-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6">
+    <h2 class="text-2xl font-bold mb-6 text-center">
+      {% if client %}Edit{% else %}Add New{% endif %} Client
+    </h2>
 
-            <form id="client-form" class="space-y-4" method="POST" action="{{ form_action }}">
-            <!-- Name -->
-            <div>
-                <label for="name" class="block font-medium">Name</label>
-                <input type="text" id="name" name="name" value="{{ client.name if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+    <form id="client-form" class="space-y-4" method="POST" action="{{ form_action }}">
+      <!-- Name -->
+      <div>
+        <label for="name" class="block font-medium">Name</label>
+        <input type="text" id="name" name="name" value="{{ client.name if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Surname -->
-            <div>
-                <label for="surname" class="block font-medium">Surname</label>
-                <input type="text" id="surname" name="surname" value="{{ client.surname if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Surname -->
+      <div>
+        <label for="surname" class="block font-medium">Surname</label>
+        <input type="text" id="surname" name="surname" value="{{ client.surname if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Phone -->
-            <div>
-                <label for="phone" class="block font-medium">Phone</label>
-                <input type="tel" id="phone" name="phone" value="{{ client.phone if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Phone -->
+      <div>
+        <label for="phone" class="block font-medium">Phone</label>
+        <input type="tel" id="phone" name="phone" value="{{ client.phone if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Email -->
-            <div>
-                <label for="email" class="block font-medium">Email</label>
-                <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Email -->
+      <div>
+        <label for="email" class="block font-medium">Email</label>
+        <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Address -->
-            <div>
-                <label for="address" class="block font-medium">Address</label>
-                <input type="text" id="address" name="address" value="{{ client.address if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Address -->
+      <div>
+        <label for="address" class="block font-medium">Address</label>
+        <input type="text" id="address" name="address" value="{{ client.address if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Date of Birth -->
-            <div>
-                <label for="dob" class="block font-medium">Date of Birth</label>
-                <input type="date" id="dob" name="dob" value="{{ client.dob if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Date of Birth -->
+      <div>
+        <label for="dob" class="block font-medium">Date of Birth</label>
+        <input type="date" id="dob" name="dob" value="{{ client.dob if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Place of Birth -->
-            <div>
-                <label for="place_of_birth" class="block font-medium">Place of Birth</label>
-                <input type="text" id="place_of_birth" name="place_of_birth" value="{{ client.place_of_birth if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-            </div>
+      <!-- Place of Birth -->
+      <div>
+        <label for="place_of_birth" class="block font-medium">Place of Birth</label>
+        <input type="text" id="place_of_birth" name="place_of_birth" value="{{ client.place_of_birth if client else '' }}" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+      </div>
 
-            <!-- Sex -->
-            <div>
-                <label class="block font-medium mb-1">Sex</label>
-                <div class="flex space-x-4">
-                    {% for gender in ['Male', 'Female', 'Other'] %}
-                    <label class="flex items-center">
-                        <input type="radio" name="sex" value="{{ gender }}" class="mr-2"
-                            {% if client and client.sex == gender %}checked{% endif %}> {{ gender }}
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
+      <!-- Sex -->
+      <div>
+        <label class="block font-medium mb-1">Sex</label>
+        <div class="flex space-x-4">
+          {% for gender in ['Male', 'Female', 'Other'] %}
+          <label class="flex items-center">
+            <input type="radio" name="sex" value="{{ gender }}" class="mr-2" {% if client and client.sex == gender %}checked{% endif %}> {{ gender }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
 
-            <!-- Client Type -->
-            <div>
-                <label for="client_type" class="block font-medium">Client Type</label>
-                <select id="client_type" name="client_type" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-                    <option value="Individual" {% if client and client.client_type == 'Individual' %}selected{% endif %}>Individual</option>
-                    <option value="Company" {% if client and client.client_type == 'Company' %}selected{% endif %}>Company</option>
-                </select>
-            </div>
+      <!-- Client Type -->
+      <div>
+        <label for="client_type" class="block font-medium">Client Type</label>
+        <select id="client_type" name="client_type" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+          <option value="Individual" {% if client and client.client_type == 'Individual' %}selected{% endif %}>Individual</option>
+          <option value="Company" {% if client and client.client_type == 'Company' %}selected{% endif %}>Company</option>
+        </select>
+      </div>
 
-            <!-- Tasks -->
-            <div>
-                <label class="block font-medium">Task(s)</label>
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                    {% set task_options = ['Consult', 'Software', 'Website', 'Design', 'AI Implementation', 'Startup'] %}
-                    {% set selected_tasks = client.tasks if client else [] %}
-                    {% for task in task_options %}
-                    <label>
-                        <input type="checkbox" name="tasks" value="{{ task }}" class="mr-2"
-                            {% if task in selected_tasks %}checked{% endif %}> {{ task }}
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
+      <!-- Tasks -->
+      <div>
+        <label class="block font-medium">Task(s)</label>
+        <div class="grid grid-cols-2 gap-2 mt-1">
+          {% set task_options = ['Consult', 'Software', 'Website', 'Design', 'AI Implementation', 'Startup'] %}
+          {% set selected_tasks = client.tasks if client else [] %}
+          {% for task in task_options %}
+          <label>
+            <input type="checkbox" name="tasks" value="{{ task }}" class="mr-2" {% if task in selected_tasks %}checked{% endif %}> {{ task }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
 
-            <!-- Status -->
-            <div>
-                <label for="status" class="block font-medium">Status</label>
-                <select id="status" name="status" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-                    {% for s in ['Negotiating', 'Agreed', 'Started', 'Finished', 'Paid'] %}
-                    <option value="{{ s }}" {% if client and client.status == s %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+      <!-- Status -->
+      <div>
+        <label for="status" class="block font-medium">Status</label>
+        <select id="status" name="status" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+          {% for s in ['Negotiating', 'Agreed', 'Started', 'Finished', 'Paid'] %}
+          <option value="{{ s }}" {% if client and client.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-            <!-- Description -->
-            <div>
-                <label for="description" class="block font-medium">Project Description</label>
-                <textarea id="description" name="description" rows="4" class="w-full mt-1 p-2 border border-gray-300 rounded-md">{{ client.description if client else '' }}</textarea>
-            </div>
+      <!-- Description -->
+      <div>
+        <label for="description" class="block font-medium">Project Description</label>
+        <textarea id="description" name="description" rows="4" class="w-full mt-1 p-2 border border-gray-300 rounded-md">{{ client.description if client else '' }}</textarea>
+      </div>
 
-            <!-- Save -->
-            <div class="text-right">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                    {% if client %}Update{% else %}Save{% endif %}
-                </button>
-            </div>
-        </form>
-    </div>
-
-</body>
-</html>
+      <!-- Save -->
+      <div class="text-right">
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+          {% if client %}Update{% else %}Save{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

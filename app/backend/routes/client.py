@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.generated.prisma import prisma
+from app.generated.prisma import Prisma
 from starlette.status import HTTP_302_FOUND
 from typing import List
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
-
+prisma = Prisma()
 @router.get("/admin/clients")
 async def list_clients(request: Request):
+
+
+
     clients = await prisma.client.find_many(order={"createdAt": "desc"})
     return templates.TemplateResponse("admin/client_list.html", {"request": request, "clients": clients})
 

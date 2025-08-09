@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from app.generated.prisma import prisma
 from app.utils.email_sender import send_invoice_email
 import os
+from app.generated.prisma import Prisma
+
+prisma = Prisma()
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")

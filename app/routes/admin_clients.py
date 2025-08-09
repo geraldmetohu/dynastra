@@ -1,8 +1,13 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from app.generated.prisma import prisma
-from app.templates import templates
 from datetime import datetime
+# Correct import in admin_clients.py
+from app.generated.prisma import Prisma
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="app/templates")
+
+prisma = Prisma()
 
 router = APIRouter()
 
