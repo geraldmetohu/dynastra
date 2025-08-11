@@ -9,6 +9,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
+# ✅ Import the shared Prisma instance
+from app.db import prisma  
+
 load_dotenv()
 
 app = FastAPI(title="Dynastra Tech")
@@ -30,8 +33,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["current_year"] = datetime.now().year
 
-# attach so routers can use request.app.templates
-app.templates = templates  # <— important
+# Attach templates to app so all routes can use request.app.templates
+app.templates = templates
 
 # Middleware: add year on request
 @app.middleware("http")
@@ -61,9 +64,31 @@ async def admin_dashboard(request: Request):
         return RedirectResponse("/admin/login", status_code=303)
     return app.templates.TemplateResponse("admin/dashboard.html", {"request": request})
 
-# Include routers (admin_auth provides /admin/login POST + /logout)
-from app.routes import home as home_routes, about, services, pricing, contact, admin_auth
+# Prisma connection events
+@app.on_event("startup")
+async def startup_event():
+    print("🔄 Connecting to the database...")
+    await prisma.connect()
+    print("✅ Internal DB loaded successfully.")
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    await prisma.disconnect()
+
+# Include routers
+from app.routes import (
+    home as home_routes,
+    about,
+    services,
+    pricing,
+    contact,
+    admin_auth,
+    admin_clients,  # ✅ already uses prisma from app/db.py
+)
+from app.routes import admin_invoices
+
+app.include_router(admin_invoices.router)
+app.include_router(admin_clients.router)
 app.include_router(home_routes.router)
 app.include_router(about.router)
 app.include_router(services.router)

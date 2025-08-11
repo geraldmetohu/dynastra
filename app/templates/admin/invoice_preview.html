@@ -1,61 +1,152 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Invoice Preview</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 p-8 text-gray-800">
-  <div class="max-w-4xl mx-auto bg-white shadow-lg p-6 rounded-md">
-    <h1 class="text-2xl font-bold mb-4">Invoice Preview</h1>
+{% extends "base.html" %}
 
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold">Client Info</h2>
-      <p><strong>Name:</strong> {{ invoice.client.name }} {{ invoice.client.surname }}</p>
-      <p><strong>Email:</strong> {{ invoice.client.email }}</p>
-      <p><strong>Phone:</strong> {{ invoice.client.phone }}</p>
-    </div>
+{% block content %}
+  {% include "components/admin_nav.html" %}
 
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold">Invoice Details</h2>
-      <p><strong>Invoice Date:</strong> {{ invoice.invoiceDate.strftime('%d/%m/%Y') }}</p>
-      <p><strong>Due Date:</strong> {{ invoice.dueDate.strftime('%d/%m/%Y') }}</p>
-      <p><strong>Account Name:</strong> {{ invoice.accountName }}</p>
-      <p><strong>Sort Code:</strong> {{ invoice.sortCode }}</p>
-      <p><strong>Account Number:</strong> {{ invoice.accountNumber }}</p>
-    </div>
+  {# --- Defaults / safe fallbacks so the preview is always complete --- #}
+  {% set company_name = "Dynastra Tech" %}
+  {% set company_email = "info@dynastra.co.uk" %}
+  {% set company_site  = "dynastra.co.uk" %}
+  {% set company_phone = "+44 7911 123456" %} {# TODO: replace with your real number #}
 
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold">Services</h2>
-      <table class="w-full text-sm border">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="p-2 border">Description</th>
-            <th class="p-2 border text-right">Price (£)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for service in invoice.services %}
-          <tr>
-            <td class="p-2 border">{{ service.description }}</td>
-            <td class="p-2 border text-right">£{{ '%.2f' % service.price }}</td>
-          </tr>
-          {% endfor %}
-          <tr class="bg-gray-100 font-bold">
-            <td class="p-2 border text-right">Total:</td>
-            <td class="p-2 border text-right">£{{ '%.2f' % invoice.total }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  {% if invoice %}
+    {% set account_name   = invoice.accountName or "Dynastra Tech" %}
+    {% set sort_code      = invoice.sortCode or "12-34-56" %}
+    {% set account_number = invoice.accountNumber or "12345678" %}
+    {% set iban           = invoice.iban or "GB00 DYN0 1234 5678 9012 34" %}
+  {% else %}
+    {# When previewing from form data without a stored invoice yet #}
+    {% set account_name   = "Dynastra Tech" %}
+    {% set sort_code      = "12-34-56" %}
+    {% set account_number = "12345678" %}
+    {% set iban           = "GB00 DYN0 1234 5678 9012 34" %}
+  {% endif %}
 
-    <div class="flex justify-between mt-6">
-      <a href="/admin/client/edit/{{ invoice.client.id }}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Back</a>
-      <div class="space-x-2">
-        <a href="/admin/invoice/save/{{ invoice.id }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</a>
-        <a href="/admin/invoice/send/{{ invoice.id }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Send</a>
+  <!-- Screen-only action bar -->
+  <div class="previewA-actions no-printA">
+    {% if invoice %}
+      <a href="/admin/invoice/save/{{ invoice.id }}" class="btnA primaryA">Save</a>
+      <a href="/admin/invoice/send/{{ invoice.id }}" class="btnA successA">Send</a>
+    {% else %}
+      <form method="post" action="/admin/invoice/save">
+        <!-- include hidden fields here if your save route expects them -->
+        <button type="submit" class="btnA primaryA">Save</button>
+      </form>
+    {% endif %}
+    <button onclick="window.print()" class="btnA">Print</button>
+  </div>
+
+  <!-- A4 preview -->
+  <div class="printA-wrap">
+    <div class="sheetA">
+      <div class="sheetA-body">
+
+        <!-- Header -->
+        <div class="invA-header">
+          <div class="invA-brand">
+            <img src="/static/logos/dynastra_dark.png" alt="Logo" class="invA-logo" />
+            <div>
+              <h1 class="invA-title">Invoice</h1>
+              <div style="font-size:12px; color:#6b7280;">
+                {{ company_name }} • {{ company_site }}
+              </div>
+            </div>
+          </div>
+          <div class="invA-meta">
+            <div><strong>Date:</strong>
+              {% if invoice %}{{ invoice.invoiceDate.strftime('%d/%m/%Y') }}
+              {% else %}{{ issue_date or '—' }}{% endif %}
+            </div>
+            <div><strong>Due:</strong>
+              {% if invoice %}{{ invoice.dueDate.strftime('%d/%m/%Y') }}
+              {% else %}{{ due_date or '—' }}{% endif %}
+            </div>
+            <div><strong>Total:</strong>
+              £{% if invoice %}{{ '%.2f' % invoice.total }}{% else %}{{ '%.2f' % total }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <div class="invA-block">
+          <div>
+            <p class="invA-subtitle">Bill To</p>
+            <div class="invA-strong">
+              {% if invoice %}
+                {{ invoice.client.name }} {{ invoice.client.surname }}
+              {% else %}
+                {% if client %}{{ client.name }} {{ client.surname }}{% else %}—{% endif %}
+              {% endif %}
+            </div>
+            <div>
+              {% if invoice %}{{ invoice.client.email }}
+              {% else %}{% if client %}{{ client.email }}{% else %}—{% endif %}{% endif %}
+            </div>
+            <div>
+              {% if invoice %}{{ invoice.client.phone }}
+              {% else %}{% if client %}{{ client.phone }}{% else %}—{% endif %}{% endif %}
+            </div>
+            <div style="margin-top:4px;">
+              {% if invoice %}{{ invoice.client.address or '—' }}
+              {% else %}{% if client %}{{ client.address or '—' }}{% else %}—{% endif %}{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <p class="invA-subtitle">From</p>
+            <div class="invA-strong">{{ company_name }}</div>
+            <div>{{ company_email }}</div>
+            <div>{{ company_phone }} • {{ company_site }}</div>
+            <div style="margin-top:8px;"><strong>Account Name:</strong> {{ account_name }}</div>
+            <div><strong>Sort Code:</strong> {{ sort_code }}</div>
+            <div><strong>Account Number:</strong> {{ account_number }}</div>
+            <div><strong>IBAN:</strong> {{ iban }}</div>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div class="sectionA">
+          <table class="invA-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="trightA">Price (£)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if invoice %}
+                {% for s in invoice.services %}
+                  <tr>
+                    <td>{{ s.description }}</td>
+                    <td class="trightA">£{{ '%.2f' % s.price }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                {% for s in services %}
+                  <tr>
+                    <td>{{ s.description }}</td>
+                    <td class="trightA">£{{ '%.2f' % s.price }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+              <tr class="invA-totalRow">
+                <td class="trightA"><strong>Total:</strong></td>
+                <td class="trightA"><strong>
+                  £{% if invoice %}{{ '%.2f' % invoice.total }}{% else %}{{ '%.2f' % total }}{% endif %}
+                </strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {% if notes %}
+          <div class="sectionA" style="margin-top:10mm;">
+            <div class="invA-subtitle">Notes</div>
+            <div style="font-size:12px; color:#374151;">{{ notes }}</div>
+          </div>
+        {% endif %}
+
       </div>
     </div>
   </div>
-</body>
-</html>
+{% endblock %}

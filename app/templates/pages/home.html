@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
+<head>
+  <style>
+  .section-tools {  padding: 3rem 1rem; }
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+  .tool-item { background: rgba(211, 245, 209, 0.854); padding: 1rem; border-radius: 2rem; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .tool-item:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .tool-icon { width: 50px; height: 50px; margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; }
+  .tool-icon img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .tool-item span { display: block; font-weight: 600; color: #333; font-size: 0.95rem; }
+  .section-title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .section-description { max-width: 600px; margin: 0 auto; font-size: 1rem; color: #b6c7ee; }
+</style>
+</head>
 
 <!-- Hero Section -->
 <section class="hero-section fade-in">
@@ -102,29 +115,9 @@
   </div>
 </section>
 
-<!-- Featured Work -->
-<section class="section section-featured-work fade-in">
-  <div class="container">
-    <h2 class="section-title text-center">Featured Projects</h2>
-    <div class="projects-grid">
-      <div class="project-card">
-        <img src="/static/public/startup.png" alt="Project 1">
-        <h3>Startup Web Platform</h3>
-        <p>Built for a fast-growing London fintech startup.</p>
-      </div>
-      <div class="project-card">
-        <img src="/static/public/ecommerce.jpg" alt="Project 2">
-        <h3>E-commerce Rebrand</h3>
-        <p>Modern redesign and Shopify integration.</p>
-      </div>
-      <div class="project-card">
-        <img src="/static/public/ai_assistant.png" alt="Project 3">
-        <h3>Real Estate AI Assistant</h3>
-        <p>Custom chatbot for lead qualification.</p>
-      </div>
-    </div>
-  </div>
-</section>
+
+{% include "partials/services_showcase.html" %}
+
 
 <!-- Testimonials -->
 <section class="section section-testimonials fade-in">
@@ -258,6 +251,9 @@
     </div>
   </div>
 </section>
+
+
+
 
 
 <!-- CTA -->

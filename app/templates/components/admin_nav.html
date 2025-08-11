@@ -1,0 +1,114 @@
+<style>
+/* Navbar container */
+.navbarA {
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Flex layout */
+.navbarA-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Left menu links */
+.navA-links {
+    display: flex;
+    gap: 20px;
+}
+
+.navA-links a {
+    color: #444;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.navA-links a:hover {
+    color: #007bff;
+}
+
+/* Right menu (admin + logout) */
+.navA-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navA-right span {
+    color: #777;
+    font-size: 14px;
+}
+
+.navA-right a {
+    color: #d93025;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.navA-right a:hover {
+    color: #b32015;
+}
+
+/* Mobile menu button */
+.menuA-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .navA-links {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding-top: 15px;
+        border-top: 1px solid #ddd;
+    }
+    .navA-links.show {
+        display: flex;
+    }
+    .navA-right {
+        display: none;
+    }
+    .menuA-toggle {
+        display: block;
+    }
+}
+</style>
+
+<nav class="navbarA">
+    <div class="navbarA-container">
+        <!-- Left links -->
+        <div class="navA-links" id="navMenu">
+            <a href="/admin/dashboard">Dashboard</a>
+            <a href="/admin/clients">Client List</a>
+            <a href="/admin/client/new">Add Client</a>
+            <a href="/admin/invoices" class="navA-linkA">Invoices</a>
+            <a href="/admin/marketing">Marketing</a>
+        </div>
+
+        <!-- Right links -->
+        <div class="navA-right">
+            <span>Admin</span>
+            <a href="/logout">Logout</a>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button class="menuA-toggle" id="menuToggle">&#9776;</button>
+    </div>
+</nav>
+
+<script>
+document.getElementById("menuToggle").addEventListener("click", function() {
+    document.getElementById("navMenu").classList.toggle("show");
+});
+</script>

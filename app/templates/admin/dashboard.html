@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% include "components/admin_nav.html" %}
+
 <section class="admin-dashboard">
-  <nav class="admin-nav" style="margin-bottom: 20px; background: #222; padding: 10px; border-radius: 6px;">
-    <ul style="list-style: none; display: flex; gap: 15px; margin: 0; padding: 0;">
-      <li><a href="/admin/dashboard" style="color: white; text-decoration: none;">Dashboard</a></li>
-      <li><a href="/admin/new_client" style="color: white; text-decoration: none;">➕ New Client</a></li>
-      <li><a href="/admin/client_list" style="color: white; text-decoration: none;">📋 Client List</a></li>
-      <li><a href="/" style="color: white; text-decoration: none;">🏠 Home</a></li>
-    </ul>
-  </nav>
 
   <h1>Welcome, Admin</h1>
   <p>This is your private admin dashboard.</p>

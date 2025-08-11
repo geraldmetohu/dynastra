@@ -1,0 +1,126 @@
+<!-- Services Showcase Section: E‑commerce • Dynamic Apps • Admin Dashboards
+     Drop‑in HTML for Python web apps (Flask/Django/Jinja). No external deps.
+     How to use (Flask): {% raw %}{% include 'partials/services_showcase.html' %}{% endraw %}
+     How to use (Django): {% raw %}{% include 'partials/services_showcase.html' %}{% endraw %}
+-->
+<section class="svc-wrap" aria-labelledby="svc-title">
+  <div class="svc-container">
+    <header class="svc-header">
+      <span class="svc-kicker">Your Agency</span>
+      <h2 id="svc-title" class="svc-title">E‑commerce, Fully Dynamic & Admin Sites</h2>
+      <p class="svc-sub">We build fast, secure, and scalable web solutions with clean UX and maintainable code.</p>
+      <div class="svc-cta">
+        <a href="/contact" class="btn btn-primary">Get a quote</a>
+        <a href="/portfolio" class="btn btn-ghost">See demos</a>
+      </div>
+    </header>
+
+    <div class="svc-grid">
+      <!-- Card 1: E‑commerce -->
+      <article class="card">
+        <div class="card-icon" aria-hidden="true"> 
+          <!-- Shopping bag icon -->
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+        </div>
+        <h3 class="card-title">E‑commerce Websites</h3>
+        <p class="card-text">High‑performance storefronts with secure checkout, product variants, vouchers, and analytics.</p>
+        <ul class="card-list">
+          <li>Stripe/PayPal/Apple/Google Pay</li>
+          <li>Products, stock & orders management</li>
+          <li>SEO‑friendly, blazing fast</li>
+        </ul>
+      </article>
+
+      <!-- Card 2: Dynamic Apps -->
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <!-- Workflow icon -->
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h6v6H3zM15 3h6v6h-6zM15 15h6v6h-6z"/><path d="M9 9l6-3M9 9l6 6"/></svg>
+        </div>
+        <h3 class="card-title">Fully Dynamic Web Apps</h3>
+        <p class="card-text">Data‑driven apps with role‑based access, real‑time features, and third‑party integrations.</p>
+        <ul class="card-list">
+          <li>Real‑time updates & notifications</li>
+          <li>REST/GraphQL integrations</li>
+          <li>Scalable architecture</li>
+        </ul>
+      </article>
+
+      <!-- Card 3: Admin Dashboards -->
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <!-- Dashboard icon -->
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg>
+        </div>
+        <h3 class="card-title">Admin Dashboards / CMS</h3>
+        <p class="card-text">Powerful admin panels to manage users, content, products, and analytics with ease.</p>
+        <ul class="card-list">
+          <li>Roles & permissions</li>
+          <li>Charts & reporting</li>
+          <li>Audit logs & activity</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="svc-strip">
+      <span>Responsive by default</span>
+      <span>Security & best practices</span>
+      <span>Search‑optimized</span>
+      <span>Maintainable codebase</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Root tokens (tweak to match your brand) */
+  .svc-wrap { --bg: #0b0f14; --panel: #0f141b; --text: #e7edf3; --muted: #9fb1c3; --primary: #00c0c9; --primary-ink:#032429; --ring: rgba(0,192,201,0.25); }
+  @media (prefers-color-scheme: light) { .svc-wrap { --bg:#f7fbfc; --panel:#ffffff; --text:#0b1a24; --muted:#4a647b; --primary:#00c0c9; --primary-ink:#062a2e; --ring: rgba(0,192,201,0.25);} }
+
+  .svc-wrap { background: linear-gradient(180deg, rgba(0,192,201,0.05), transparent 35%), var(--bg); color: var(--text); padding: 4rem 1rem; }
+  .svc-container { max-width: 1120px; margin: 0 auto; }
+  .svc-header { text-align: center; margin-bottom: 2rem; }
+  .svc-kicker { display:inline-flex; align-items:center; gap:.5rem; font-size:.75rem; color:var(--muted); padding:.35rem .6rem; border:1px solid rgba(255,255,255,.08); background:var(--panel); border-radius: 999px; }
+  .svc-title { margin:.75rem 0 0; font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height:1.2; font-weight: 800; letter-spacing: .2px; }
+  .svc-sub { margin:.75rem auto 0; max-width: 48ch; color: var(--muted); }
+  .svc-cta { display:flex; gap:.75rem; justify-content:center; margin-top: 1rem; flex-wrap: wrap; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.8rem 1rem; border-radius: .9rem; text-decoration:none; font-weight:600; transition: transform .15s ease, box-shadow .15s ease; border:1px solid transparent; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 .2rem var(--ring); }
+  .btn-primary { background: var(--primary); color: var(--primary-ink); }
+  .btn-primary:hover { filter: brightness(1.02); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: rgba(255,255,255,.12); }
+
+  .svc-grid { display:grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; }
+  @media (min-width: 720px){ .svc-grid { grid-template-columns: repeat(3, 1fr);} }
+
+  .card { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 1.25rem; padding: 1.1rem 1rem 1.2rem; box-shadow: 0 6px 20px rgba(3,3,3,.15); transition: transform .2s ease, box-shadow .2s ease; height: 100%; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(3,3,3,.22); }
+  .card-icon { width: 44px; height: 44px; display:grid; place-items:center; border-radius: .9rem; background: radial-gradient(120% 120% at 0% 0%, rgba(0,192,201,.25), transparent 60%); border:1px solid rgba(255,255,255,.09); color: var(--primary); }
+  .card-title { font-size: 1.05rem; margin: .6rem 0 .3rem; font-weight: 800; letter-spacing: .2px; }
+  .card-text { color: var(--muted); margin: 0 0 .6rem; }
+  .card-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; color: var(--text); }
+  .card-list li { position: relative; padding-left: .9rem; }
+  .card-list li::before { content: ""; position: absolute; left: 0; top: .6rem; width: .35rem; height: .35rem; background: var(--primary); border-radius: 50%; }
+
+  .svc-strip { margin-top: 1.25rem; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.5rem; border:1px solid rgba(255,255,255,.08); background: var(--panel); border-radius: 1rem; padding:.85rem; color: var(--muted); text-align:center; font-size: .9rem; }
+  @media (min-width: 720px){ .svc-strip { grid-template-columns: repeat(4, 1fr);} }
+</style>
+
+<!-- Optional: small JS to animate cards on scroll (no frameworks) -->
+<script>
+  (function(){
+    const obs = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.animate([{opacity:0, transform:'translateY(12px)'},{opacity:1, transform:'translateY(0)'}],{duration:400, easing:'ease-out'}); obs.unobserve(e.target); }
+      });
+    },{threshold:0.15}) : null;
+    document.querySelectorAll('.card').forEach(el=>{ if(obs) obs.observe(el); });
+  })();
+</script>
+
+<!-- Jinja variables (optional). Replace static text by passing variables from Python.
+     Example (Flask/Django):
+     {% set brand_name = 'Vangard' %}
+     {% set quote_url = url_for('contact') if false else '/contact' %}
+     Then replace in markup: 'Your Agency' -> {{ brand_name }} and hrefs -> {{ quote_url }} etc.
+-->

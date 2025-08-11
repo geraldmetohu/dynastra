@@ -1,154 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Create Invoice</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-800 p-8">
-<div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
-    <h2 class="text-2xl font-bold mb-6">Create New Invoice</h2>
+{% extends "base.html" %}
 
-    <form method="POST" action="/admin/invoice/preview" id="invoice-form">
+{% block content %}
+  {% include "components/admin_nav.html" %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+
+</head>
+  <div class="bg-gray-100A text-gray-800A p-8A min-h-screenA">
+    <div class="max-w-5xlA mx-auto bg-whiteA rounded-xlA shadow-mdA p-6A">
+      <h2 class="text-2xlA mb-6A">Create New Invoice</h2>
+
+      <form method="POST" action="/admin/invoice/preview" id="invoice-form" class="space-y-6A">
         <!-- Client Selection -->
-        <div class="mb-4">
-            <label for="client_id" class="block font-medium">Select Client</label>
-            <select id="client_id" name="client_id" required class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-                <option value="">-- Select Client --</option>
-                {% for client in clients %}
-                    <option value="{{ client.id }}">{{ client.name }} {{ client.surname }} - {{ client.email }}</option>
-                {% endfor %}
-            </select>
+        <div>
+          <label for="client_id" class="blockA mb-1A">Select Client</label>
+          <select id="client_id" name="client_id" required class="w-fullA p-2A borderA border-gray-300A rounded-mdA">
+            <option value="">-- Select Client --</option>
+            {% for client in clients %}
+              <option
+                value="{{ client.id }}"
+                data-name="{{ client.name|e }} {{ client.surname|e }}"
+                data-email="{{ client.email|e }}"
+                data-phone="{{ client.phone|e }}"
+                data-address="{{ client.address or '' | e }}"
+              >
+                {{ client.name }} {{ client.surname }} — {{ client.email }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
 
         <!-- Auto-filled Client Info -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div>
-                <label class="block font-medium">Name</label>
-                <input type="text" id="client_name" readonly class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <label class="block font-medium">Email</label>
-                <input type="text" id="client_email" readonly class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <label class="block font-medium">Phone</label>
-                <input type="text" id="client_phone" readonly class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <label class="block font-medium">Address</label>
-                <input type="text" id="client_address" readonly class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
+        <div class="gridA grid-cols-2A gap-4A">
+          <div>
+            <label class="blockA mb-1A">Name</label>
+            <input type="text" id="client_name" readonly class="w-fullA p-2A borderA border-gray-300A rounded-mdA bg-whiteA">
+          </div>
+          <div>
+            <label class="blockA mb-1A">Email</label>
+            <input type="text" id="client_email" readonly class="w-fullA p-2A borderA border-gray-300A rounded-mdA bg-whiteA">
+          </div>
+          <div>
+            <label class="blockA mb-1A">Phone</label>
+            <input type="text" id="client_phone" readonly class="w-fullA p-2A borderA border-gray-300A rounded-mdA bg-whiteA">
+          </div>
+          <div>
+            <label class="blockA mb-1A">Address</label>
+            <input type="text" id="client_address" readonly class="w-fullA p-2A borderA border-gray-300A rounded-mdA bg-whiteA">
+          </div>
         </div>
 
         <!-- Invoice Meta -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div>
-                <label for="issue_date" class="block font-medium">Issue Date</label>
-                <input type="date" name="issue_date" required class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <label for="due_date" class="block font-medium">Due Date</label>
-                <input type="date" name="due_date" required class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
+        <div class="gridA grid-cols-2A gap-4A">
+          <div>
+            <label for="issue_date" class="blockA mb-1A">Issue Date</label>
+            <input type="date" id="issue_date" name="issue_date" required class="w-fullA p-2A borderA border-gray-300A rounded-mdA">
+          </div>
+          <div>
+            <label for="due_date" class="blockA mb-1A">Due Date</label>
+            <input type="date" id="due_date" name="due_date" required class="w-fullA p-2A borderA border-gray-300A rounded-mdA">
+          </div>
         </div>
 
-        <!-- Dynamic Services -->
-        <div id="services-section" class="mb-6">
-            <h3 class="text-lg font-semibold mb-2">Services</h3>
-            <div id="service-items">
-                <!-- JS will inject service items here -->
-            </div>
-            <button type="button" onclick="addService()" class="mt-2 text-blue-600 hover:underline">+ Add Service</button>
+        <!-- Services (dynamic) -->
+        <div>
+          <label class="blockA mb-2A">Services</label>
+
+          <div id="services-container" class="space-y-3A">
+            <!-- rows injected by JS -->
+          </div>
+
+          <div class="mt-2A">
+            <button type="button" id="add-service" class="btnA">+ Add Service</button>
+          </div>
         </div>
-<div id="services-container" class="space-y-4">
-  <label class="block font-medium">Services</label>
-
-  <!-- One service row -->
-  <div class="service-row flex space-x-4 items-center">
-    <input type="text" name="service_description[]" placeholder="Description"
-           class="flex-1 p-2 border border-gray-300 rounded-md" required>
-    <input type="number" name="service_price[]" placeholder="Price"
-           class="w-32 p-2 border border-gray-300 rounded-md" step="0.01" required>
-    <button type="button" class="remove-service bg-red-500 text-white px-2 py-1 rounded">✕</button>
-  </div>
-</div>
-
-<!-- Add Service button -->
-<div class="mt-4">
-  <button type="button" id="add-service"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-    + Add Service
-  </button>
-</div>
 
         <!-- Notes -->
-        <div class="mb-6">
-            <label for="notes" class="block font-medium">Additional Notes</label>
-            <textarea name="notes" rows="4" class="w-full mt-1 p-2 border border-gray-300 rounded-md"></textarea>
+        <div>
+          <label for="notes" class="blockA mb-1A">Additional Notes</label>
+          <textarea id="notes" name="notes" rows="4" class="w-fullA p-2A borderA border-gray-300A rounded-mdA"></textarea>
         </div>
 
         <!-- Submit -->
-        <div class="text-right">
-            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Preview Invoice</button>
+        <div class="text-rightA">
+          <button type="submit" class="btnA">Preview Invoice</button>
         </div>
-    </form>
-</div>
+      </form>
+    </div>
+  </div>
 
-<script>
-    const clientData = {% raw %}{{ clients | tojson }}{% endraw %};
-    const serviceContainer = document.getElementById("service-items");
-    let serviceIndex = 0;
+  <style>
+    /* small tweaks for this page */
+    .service-rowA { display:flex; gap:12px; align-items:center; }
+    .service-rowA .descA { flex: 1; }
+    .service-rowA .priceA { width: 140px; }
+    .removeA { background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .removeA:hover { background:#dc2626; }
+    @media (max-width: 640px) {
+      .service-rowA { flex-direction: column; align-items: stretch; }
+      .service-rowA .priceA { width: 100%; }
+    }
+  </style>
 
-    document.getElementById("client_id").addEventListener("change", function () {
-        const selectedId = this.value;
-        const selectedClient = clientData.find(c => c.id === selectedId);
-        if (selectedClient) {
-            document.getElementById("client_name").value = selectedClient.name + ' ' + selectedClient.surname;
-            document.getElementById("client_email").value = selectedClient.email;
-            document.getElementById("client_phone").value = selectedClient.phone;
-            document.getElementById("client_address").value = selectedClient.address || '';
-        }
+  <script>
+    // Autofill client info from option data- attributes
+    const selectEl = document.getElementById('client_id');
+    selectEl.addEventListener('change', () => {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      if (!opt || !opt.dataset) return;
+      document.getElementById('client_name').value   = opt.dataset.name   || '';
+      document.getElementById('client_email').value  = opt.dataset.email  || '';
+      document.getElementById('client_phone').value  = opt.dataset.phone  || '';
+      document.getElementById('client_address').value= opt.dataset.address|| '';
     });
 
-    function addService() {
-        const index = serviceIndex++;
-        const div = document.createElement("div");
-        div.classList.add("grid", "grid-cols-4", "gap-4", "mb-4");
-        div.innerHTML = `
-            <input name="services[${index}][name]" placeholder="Service Name" required class="p-2 border rounded-md">
-            <input name="services[${index}][description]" placeholder="Description" class="p-2 border rounded-md">
-            <input name="services[${index}][quantity]" type="number" placeholder="Qty" min="1" value="1" required class="p-2 border rounded-md">
-            <input name="services[${index}][price]" type="number" step="0.01" placeholder="Unit Price" required class="p-2 border rounded-md">
-        `;
-        serviceContainer.appendChild(div);
-    }
-
-    window.onload = () => addService(); // Load at least 1 service row on start
-</script>
-<script>
-  document.getElementById('add-service').addEventListener('click', () => {
+    // Services dynamic rows
     const container = document.getElementById('services-container');
+    const addBtn = document.getElementById('add-service');
 
-    const div = document.createElement('div');
-    div.className = 'service-row flex space-x-4 items-center mt-2';
-    div.innerHTML = `
-      <input type="text" name="service_description[]" placeholder="Description"
-             class="flex-1 p-2 border border-gray-300 rounded-md" required>
-      <input type="number" name="service_price[]" placeholder="Price"
-             class="w-32 p-2 border border-gray-300 rounded-md" step="0.01" required>
-      <button type="button" class="remove-service bg-red-500 text-white px-2 py-1 rounded">✕</button>
-    `;
-    container.appendChild(div);
-  });
+    function addServiceRow() {
+      const row = document.createElement('div');
+      row.className = 'service-rowA';
 
-  // Remove service row
-  document.addEventListener('click', function (e) {
-    if (e.target && e.target.classList.contains('remove-service')) {
-      e.target.parentElement.remove();
+      row.innerHTML = `
+        <input type="text" name="service_description[]" placeholder="Description"
+               class="descA p-2A borderA border-gray-300A rounded-mdA" required>
+        <input type="number" name="service_price[]" placeholder="Price"
+               class="priceA p-2A borderA border-gray-300A rounded-mdA" step="0.01" min="0" required>
+        <button type="button" class="removeA" title="Remove">✕</button>
+      `;
+
+      row.querySelector('.removeA').addEventListener('click', () => row.remove());
+      container.appendChild(row);
     }
-  });
-</script>
 
-</body>
-</html>
+    addBtn.addEventListener('click', addServiceRow);
+
+    // Ensure at least one row initially
+    addServiceRow();
+  </script>
+{% endblock %}

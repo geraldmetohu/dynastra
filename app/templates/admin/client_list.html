@@ -1,81 +1,75 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="bg-gray-100 text-gray-800 p-8 min-h-screen">
-  
-  <!-- Admin Navigation -->
-  <nav class="bg-white shadow mb-6 rounded-lg">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center space-x-6">
-      <a href="/admin/dashboard" class="text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
-      <a href="/admin/clients" class="text-gray-700 hover:text-blue-600 font-medium">Client List</a>
-      <a href="/admin/new_client" class="text-gray-700 hover:text-blue-600 font-medium">Add Client</a>
-      <a href="/admin/invoices" class="text-gray-700 hover:text-blue-600 font-medium">Invoices</a>
-      <a href="/admin/marketing" class="text-gray-700 hover:text-blue-600 font-medium">Marketing</a>
-    </div>
-  </nav>
+  {% include "components/admin_nav.html" %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-md p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold">Client List</h2>
-      <a href="/admin/new_client" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Create Client</a>
-    </div>
+</head>
+  <div class="bg-gray-100A text-gray-800A p-8A min-h-screenA">
+    <div class="max-w-7xlA mx-autoA bg-whiteA rounded-xlA shadow-mdA p-6A">
+      <div class="flexA justify-betweenA items-centerA mb-6A">
+        <h2 class="text-2xlA font-boldA">Client List</h2>
+        <a href="/admin/client/new" class="bg-blue-600A text-whiteA px-4A py-2A roundedA hover-bg-blue-700A">+ Create Client</a>
+      </div>
 
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-100 text-gray-700">
-          <tr>
-            <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Name</th>
-            <th class="px-4 py-2 text-left">Email</th>
-            <th class="px-4 py-2 text-left">Phone</th>
-            <th class="px-4 py-2 text-left">Client Type</th>
-            <th class="px-4 py-2 text-left">Task(s)</th>
-            <th class="px-4 py-2 text-left">Status</th>
-            <th class="px-4 py-2 text-left">Date Created</th>
-            <th class="px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for client in clients %}
-          <tr>
-            <td class="px-4 py-2">{{ loop.index }}</td>
-            <td class="px-4 py-2">{{ client.name }} {{ client.surname }}</td>
-            <td class="px-4 py-2">{{ client.email }}</td>
-            <td class="px-4 py-2">{{ client.phone }}</td>
-            <td class="px-4 py-2">{{ client.client_type }}</td>
-            <td class="px-4 py-2">
-              {% for task in client.tasks %}
-              <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1">{{ task }}</span>
-              {% endfor %}
-            </td>
-            <td class="px-4 py-2">
-              <span class="inline-block px-2 py-1 text-xs rounded 
-                {% if client.status == 'Paid' %}bg-green-100 text-green-800
-                {% elif client.status == 'Finished' %}bg-emerald-100 text-emerald-800
-                {% elif client.status == 'Started' %}bg-blue-100 text-blue-800
-                {% elif client.status == 'Agreed' %}bg-yellow-100 text-yellow-800
-                {% else %}bg-gray-100 text-gray-700{% endif %}">
-                {{ client.status }}
-              </span>
-            </td>
-            <td class="px-4 py-2">{{ client.date_created.strftime('%Y-%m-%d') }}</td>
-            <td class="px-4 py-2 space-y-1">
-              <a href="/admin/client/edit/{{ client.id }}" class="text-indigo-600 hover:underline block">Edit</a>
-              <a href="/admin/client/delete/{{ client.id }}" class="text-red-600 hover:underline block">Delete</a>
-              <a href="/admin/invoice/create/{{ client.id }}" class="text-green-600 hover:underline block">Send Invoice</a>
-              <a href="/admin/client/{{ client.id }}/invoices" class="text-purple-600 hover:underline block">View Invoices</a>
-              <a href="/admin/marketing/send/{{ client.id }}" class="text-yellow-600 hover:underline block">Send Marketing</a>
-            </td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="9" class="text-center py-6 text-gray-500">No clients found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="overflow-x-autoA">
+        <table class="min-w-fullA divide-yA divide-gray-200A text-smA">
+          <thead class="bg-gray-100A text-gray-700A">
+            <tr>
+              <th class="px-4A py-2A text-leftA">#</th>
+              <th class="px-4A py-2A text-leftA">Name</th>
+              <th class="px-4A py-2A text-leftA">Email</th>
+              <th class="px-4A py-2A text-leftA">Phone</th>
+              <th class="px-4A py-2A text-leftA">Client Type</th>
+              <th class="px-4A py-2A text-leftA">Task(s)</th>
+              <th class="px-4A py-2A text-leftA">Status</th>
+              <th class="px-4A py-2A text-leftA">Date Created</th>
+              <th class="px-4A py-2A text-leftA">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-yA divide-gray-200A">
+            {% for client in clients %}
+            <tr>
+              <td class="px-4A py-2A">{{ loop.index }}</td>
+              <td class="px-4A py-2A">{{ client.name }} {{ client.surname }}</td>
+              <td class="px-4A py-2A">{{ client.email }}</td>
+              <td class="px-4A py-2A">{{ client.phone }}</td>
+              <td class="px-4A py-2A">{{ client.clientType }}</td>
+              <td class="px-4A py-2A">
+                {% for task in client.tasks or [] %}
+                  <span class="inline-blockA bg-blue-100A text-blue-800A text-xsA px-2A py-1A roundedA mr-1A">{{ task }}</span>
+                {% endfor %}
+              </td>
+              <td class="px-4A py-2A">
+                <span class="inline-blockA px-2A py-1A text-xsA roundedA 
+                  {% if client.status == 'Paid' %}bg-green-100A text-green-800A
+                  {% elif client.status == 'Finished' %}bg-emerald-100A text-emerald-800A
+                  {% elif client.status == 'Started' %}bg-blue-100A text-blue-800A
+                  {% elif client.status == 'Agreed' %}bg-yellow-100A text-yellow-800A
+                  {% else %}bg-gray-100A text-gray-700A{% endif %}">
+                  {{ client.status or '—' }}
+                </span>
+              </td>
+              <td class="px-4A py-2A">
+                {% if client.createdAt %}{{ client.createdAt.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
+              </td>
+              <td class="px-4A py-2A space-y-1A">
+                <a href="/admin/client/edit/{{ client.id }}" class="text-indigo-600A hover-underlineA blockA">Edit</a>
+                <a href="/admin/client/delete/{{ client.id }}" class="text-red-600A hover-underlineA blockA">Delete</a>
+                <a href="/admin/invoice/create/{{ client.id }}" class="text-green-600A hover-underlineA blockA">Send Invoice</a>
+                <a href="/admin/client/{{ client.id }}/invoices" class="text-purple-600A hover-underlineA blockA">View Invoices</a>
+                <a href="/admin/marketing/send/{{ client.id }}" class="text-yellow-600A hover-underlineA blockA">Send Marketing</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9" class="text-centerA py-6A text-gray-500A">No clients found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-</div>
 {% endblock %}
