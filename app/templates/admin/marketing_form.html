@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+  {% include "components/admin_nav.html" %}
+
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+
+  <div class="p-6 max-w-5xl mx-auto">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="title">Send Marketing Email</h2>
+          <div class="muted">
+            To: <strong>{{ client.name }} {{ client.surname }}</strong> &lt;{{ client.email }}&gt;
+          </div>
+        </div>
+        <a class="btn" href="/admin/clients">← Back to Clients</a>
+      </div>
+
+      <div class="notice-area">
+        {% if sent %}
+          <div class="notice notice-success">Email sent ✅</div>
+        {% elif error %}
+          <div class="notice notice-error">{{ error }}</div>
+        {% endif %}
+      </div>
+
+      <div class="grid">
+        <form method="post" action="/admin/marketing/send" class="pane">
+          <input type="hidden" name="client_id" value="{{ client.id }}">
+
+          <div class="field">
+            <label>Template</label>
+            <select id="tpl" class="input">
+              <option value="">— Choose —</option>
+              {% for t in templates %}
+                <option value="{{ loop.index0 }}"
+                        data-subject="{{ t.subject|e }}"
+                        data-content="{{ t.content|e }}">
+                  {{ t.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Subject</label>
+            <input class="input" type="text" name="subject" id="subject" required>
+          </div>
+
+          <div class="field">
+            <label>Message</label>
+            <div class="chips">
+              <button type="button" class="chip" data-insert="{name}">{name}</button>
+              <button type="button" class="chip" data-insert="{company}">{company}</button>
+            </div>
+            <textarea class="textarea" name="message" id="message" rows="10" required></textarea>
+            <div class="muted small"><span id="count">0</span> characters · placeholders available: {name}, {company}</div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Send</button>
+          </div>
+        </form>
+
+        <div class="pane preview">
+          <div class="preview-header">Live Preview</div>
+          <div id="preview" class="preview-body">
+            <em class="muted">Start typing your message to preview…</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.04); }
+    .card-header { display:flex; justify-content:space-between; align-items:center; padding:18px 20px 0; }
+    .title { font-size:22px; margin:0 0 4px; }
+    .muted { color:#6b7280; }
+    .small { font-size:12px; }
+    .btn { background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; border-radius:10px; padding:8px 12px; text-decoration:none; cursor:pointer; }
+    .btn-primary { background:#2563eb; border-color:#1d4ed8; color:#fff; }
+    .notice-area { padding:10px 20px 0; }
+    .notice { padding:10px 12px; border-radius:10px; font-size:14px; }
+    .notice-success { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+    .notice-error { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:18px 20px 20px; }
+    .pane { background:#fff; border:1px solid #eef2f7; border-radius:12px; padding:16px; }
+    .field { margin-bottom:14px; }
+    .field > label { display:block; font-size:14px; margin-bottom:6px; color:#111827; }
+    .input { width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:10px; }
+    .textarea { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; resize:vertical; min-height:180px; line-height:1.45; }
+    .chips { display:flex; gap:8px; margin-bottom:8px; }
+    .chip { border:1px solid #d1d5db; background:#f9fafb; padding:4px 8px; border-radius:999px; cursor:pointer; font-size:12px; }
+    .preview-header { font-weight:600; margin-bottom:8px; }
+    .preview-body { border:1px dashed #e5e7eb; border-radius:8px; padding:12px; min-height:220px; white-space:pre-wrap; word-break:break-word; }
+    .actions { margin-top:10px; display:flex; gap:10px; }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <script>
+    const tpl = document.getElementById('tpl');
+    const subj = document.getElementById('subject');
+    const msg  = document.getElementById('message');
+    const preview = document.getElementById('preview');
+    const counter = document.getElementById('count');
+
+    // Insert placeholder at cursor
+    document.querySelectorAll('.chip').forEach(ch => {
+      ch.addEventListener('click', () => {
+        const insert = ch.dataset.insert || '';
+        const start = msg.selectionStart ?? msg.value.length;
+        const end = msg.selectionEnd ?? msg.value.length;
+        msg.setRangeText(insert, start, end, 'end');
+        msg.dispatchEvent(new Event('input'));
+        msg.focus();
+      });
+    });
+
+    // Template picker
+    tpl?.addEventListener('change', () => {
+      const opt = tpl.options[tpl.selectedIndex];
+      if (!opt?.dataset) return;
+      subj.value = opt.dataset.subject || '';
+      msg.value  = opt.dataset.content || '';
+      msg.dispatchEvent(new Event('input'));
+    });
+
+    // Live preview + character count
+    function render() {
+      counter.textContent = (msg.value || '').length;
+      // very light HTML escape for preview
+      const esc = (s) => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      const text = esc(msg.value || '');
+      preview.innerHTML = text ? `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto;line-height:1.5">${text}</div>` :
+        `<em class="muted">Start typing your message to preview…</em>`;
+    }
+    msg?.addEventListener('input', render);
+    render();
+  </script>
+{% endblock %}

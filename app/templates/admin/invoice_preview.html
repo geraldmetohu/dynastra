@@ -1,38 +1,105 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% include "components/admin_nav.html" %}
-
-  {# --- Defaults / safe fallbacks so the preview is always complete --- #}
-  {% set company_name = "Dynastra Tech" %}
-  {% set company_email = "info@dynastra.co.uk" %}
-  {% set company_site  = "dynastra.co.uk" %}
-  {% set company_phone = "+44 7944 8989 85" %} {# TODO: replace with your real number #}
-
-  {% if invoice %}
-    {% set account_name   = invoice.accountName or "Dynastra Tech" %}
-    {% set sort_code      = invoice.sortCode or "12-34-56" %}
-    {% set account_number = invoice.accountNumber or "12345678" %}
-    {% set iban           = invoice.iban or "GB00 DYN0 1234 5678 9012 34" %}
-  {% else %}
-    {# When previewing from form data without a stored invoice yet #}
-    {% set account_name   = "Dynastra Tech" %}
-    {% set sort_code      = "12-34-56" %}
-    {% set account_number = "12345678" %}
-    {% set iban           = "GB00 DYN0 1234 5678 9012 34" %}
-  {% endif %}
+  {# Top nav (screen only; hidden when printing) #}
+  <div class="no-printA">
+    {% include "components/admin_nav.html" %}
+  </div>
 
   <!-- Screen-only action bar -->
   <div class="previewA-actions no-printA">
     {% if invoice %}
-      <a href="/admin/invoice/save/{{ invoice.id }}" class="btnA primaryA">Save</a>
-      <a href="/admin/invoice/send/{{ invoice.id }}" class="btnA successA">Send</a>
+      <!-- Send (with editable subject/body) -->
+      <form method="post"
+            action="/admin/invoice/send/{{ invoice.id }}"
+            class="send-formA"
+            data-confirm="{{ (
+              'Send invoice ' ~ invoice.invoiceDate.strftime('%Y%m%d') ~ '-' ~ invoice.id[:6] ~
+              ' to ' ~ invoice.client.email ~ '?'
+            ) | e }}">
+        <label class="labelA">Subject</label>
+        <input class="inputA"
+              name="subject"
+              required
+              value="Invoice INV-{{ invoice.invoiceDate.strftime('%Y%m%d') }}-{{ invoice.id[:6]|upper }} — £{{ '%.2f' % invoice.total }} due {{ invoice.dueDate.strftime('%d %b %Y') }} – {{ company_name }}">
+
+        <label class="labelA">Message (HTML allowed)</label>
+        <textarea class="inputA" name="body" rows="10"><div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+          <p>Hi {{ invoice.client.name }},</p>
+
+          <p>Thanks for your business. Please find your invoice details below. The total due is
+            <strong>£{{ '%.2f' % invoice.total }}</strong> by <strong>{{ invoice.dueDate.strftime('%d %b %Y') }}</strong>.
+          </p>
+
+          <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:12px 0;width:100%;max-width:560px">
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;background:#f8fafc"><strong>Invoice #</strong></td>
+              <td style="border:1px solid #ddd;padding:8px">INV-{{ invoice.invoiceDate.strftime('%Y%m%d') }}-{{ invoice.id[:6]|upper }}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;background:#f8fafc"><strong>Issue date</strong></td>
+              <td style="border:1px solid #ddd;padding:8px">{{ invoice.invoiceDate.strftime('%d %b %Y') }}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;background:#f8fafc"><strong>Due date</strong></td>
+              <td style="border:1px solid #ddd;padding:8px">{{ invoice.dueDate.strftime('%d %b %Y') }}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #ddd;padding:8px;background:#f8fafc"><strong>Total</strong></td>
+              <td style="border:1px solid #ddd;padding:8px"><strong>£{{ '%.2f' % invoice.total }}</strong></td>
+            </tr>
+          </table>
+
+          <p style="margin:16px 0 6px 0"><strong>Line items</strong></p>
+          <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:6px 0;width:100%;max-width:560px">
+            <thead>
+              <tr>
+                <th align="left" style="border:1px solid #ddd;padding:8px;background:#f3f4f6">Description</th>
+                <th align="right" style="border:1px solid #ddd;padding:8px;background:#f3f4f6">Price (£)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in invoice.services %}
+              <tr>
+                <td style="border:1px solid #eee;padding:8px">{{ s.description }}</td>
+                <td align="right" style="border:1px solid #eee;padding:8px">£{{ '%.2f' % s.price }}</td>
+              </tr>
+              {% endfor %}
+              <tr>
+                <td align="right" style="border:1px solid #ddd;padding:8px;background:#f8fafc"><strong>Total</strong></td>
+                <td align="right" style="border:1px solid #ddd;padding:8px"><strong>£{{ '%.2f' % invoice.total }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p style="margin-top:16px"><strong>Bank details</strong><br>
+            Account name: {{ account_name }}<br>
+            Sort code: {{ sort_code }} • Account no: {{ account_number }}<br>
+            IBAN: {{ iban }}
+          </p>
+
+          <p>If you have any questions, just reply to this email.</p>
+
+          <p>Best regards,<br>{{ company_name }}<br>{{ company_email }} · {{ company_phone }}</p>
+        </div></textarea>
+
+        <button class="btnA successA" id="sendBtn" type="submit">Send</button>
+      </form>
     {% else %}
-      <form method="post" action="/admin/invoice/save">
-        <!-- include hidden fields here if your save route expects them -->
+      <!-- Save the new invoice (reposts original fields) -->
+      <form method="post" action="/admin/invoice/save" class="inline-block">
+        <input type="hidden" name="client_id" value="{{ client.id }}" />
+        <input type="hidden" name="issue_date" value="{{ issue_date }}" />
+        <input type="hidden" name="due_date" value="{{ due_date }}" />
+        <input type="hidden" name="notes" value="{{ notes or '' }}" />
+        {% for s in services %}
+          <input type="hidden" name="service_description" value="{{ s.description }}">
+          <input type="hidden" name="service_price" value="{{ '%.2f' % s.price }}">
+        {% endfor %}
         <button type="submit" class="btnA primaryA">Save</button>
       </form>
     {% endif %}
+
     <button onclick="window.print()" class="btnA">Print</button>
   </div>
 
@@ -44,22 +111,18 @@
         <!-- Header -->
         <div class="invA-header">
           <div class="invA-brand">
-            <img src="/static/logos/dynastra_dark.png" alt="Logo" class="invA-logo" />
+            <img src="{{ logo_url or '/static/logos/dynastra_dark.png' }}" alt="Logo" class="invA-logo" />
             <div>
               <h1 class="invA-title">Invoice</h1>
-              <div style="font-size:12px; color:#6b7280;">
-                {{ company_name }} • {{ company_site }}
-              </div>
+              <div class="mutedA">{{ company_name }} • {{ company_site }}</div>
             </div>
           </div>
           <div class="invA-meta">
             <div><strong>Date:</strong>
-              {% if invoice %}{{ invoice.invoiceDate.strftime('%d/%m/%Y') }}
-              {% else %}{{ issue_date or '—' }}{% endif %}
+              {% if invoice %}{{ invoice.invoiceDate.strftime('%d/%m/%Y') }}{% else %}{{ issue_date or '—' }}{% endif %}
             </div>
             <div><strong>Due:</strong>
-              {% if invoice %}{{ invoice.dueDate.strftime('%d/%m/%Y') }}
-              {% else %}{{ due_date or '—' }}{% endif %}
+              {% if invoice %}{{ invoice.dueDate.strftime('%d/%m/%Y') }}{% else %}{{ due_date or '—' }}{% endif %}
             </div>
             <div><strong>Total:</strong>
               £{% if invoice %}{{ '%.2f' % invoice.total }}{% else %}{{ '%.2f' % total }}{% endif %}
@@ -72,24 +135,12 @@
           <div>
             <p class="invA-subtitle">Bill To</p>
             <div class="invA-strong">
-              {% if invoice %}
-                {{ invoice.client.name }} {{ invoice.client.surname }}
-              {% else %}
-                {% if client %}{{ client.name }} {{ client.surname }}{% else %}—{% endif %}
-              {% endif %}
+              {% if invoice %}{{ invoice.client.name }} {{ invoice.client.surname }}
+              {% else %}{{ client.name }} {{ client.surname }}{% endif %}
             </div>
-            <div>
-              {% if invoice %}{{ invoice.client.email }}
-              {% else %}{% if client %}{{ client.email }}{% else %}—{% endif %}{% endif %}
-            </div>
-            <div>
-              {% if invoice %}{{ invoice.client.phone }}
-              {% else %}{% if client %}{{ client.phone }}{% else %}—{% endif %}{% endif %}
-            </div>
-            <div style="margin-top:4px;">
-              {% if invoice %}{{ invoice.client.address or '—' }}
-              {% else %}{% if client %}{{ client.address or '—' }}{% else %}—{% endif %}{% endif %}
-            </div>
+            <div>{% if invoice %}{{ invoice.client.email }}{% else %}{{ client.email }}{% endif %}</div>
+            <div>{% if invoice %}{{ invoice.client.phone }}{% else %}{{ client.phone }}{% endif %}</div>
+            <div class="mutedA">{% if invoice %}{{ invoice.client.address or '—' }}{% else %}{{ client.address or '—' }}{% endif %}</div>
           </div>
 
           <div>
@@ -105,6 +156,7 @@
         </div>
 
         <!-- Services -->
+        {% set rows = invoice.services if invoice else services %}
         <div class="sectionA">
           <table class="invA-table">
             <thead>
@@ -114,26 +166,17 @@
               </tr>
             </thead>
             <tbody>
-              {% if invoice %}
-                {% for s in invoice.services %}
-                  <tr>
-                    <td>{{ s.description }}</td>
-                    <td class="trightA">£{{ '%.2f' % s.price }}</td>
-                  </tr>
-                {% endfor %}
-              {% else %}
-                {% for s in services %}
-                  <tr>
-                    <td>{{ s.description }}</td>
-                    <td class="trightA">£{{ '%.2f' % s.price }}</td>
-                  </tr>
-                {% endfor %}
-              {% endif %}
+              {% for s in rows %}
+                <tr>
+                  <td>{{ s.description }}</td>
+                  <td class="trightA">£{{ '%.2f' % s.price }}</td>
+                </tr>
+              {% endfor %}
               <tr class="invA-totalRow">
                 <td class="trightA"><strong>Total:</strong></td>
-                <td class="trightA"><strong>
-                  £{% if invoice %}{{ '%.2f' % invoice.total }}{% else %}{{ '%.2f' % total }}{% endif %}
-                </strong></td>
+                <td class="trightA">
+                  <strong>£{% if invoice %}{{ '%.2f' % invoice.total }}{% else %}{{ '%.2f' % total }}{% endif %}</strong>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -142,11 +185,107 @@
         {% if notes %}
           <div class="sectionA" style="margin-top:10mm;">
             <div class="invA-subtitle">Notes</div>
-            <div style="font-size:12px; color:#374151;">{{ notes }}</div>
+            <div class="mutedA">{{ notes }}</div>
           </div>
         {% endif %}
 
       </div>
     </div>
   </div>
+
+  <!-- Inline styles dedicated to this page -->
+  <style>
+    /* --- General look --- */
+    :root { --ink:#111827; --muted:#6b7280; --line:#e5e7eb; }
+    body { background:#f3f4f6; color:var(--ink); }
+
+    .mutedA { font-size:12px; color:var(--muted); }
+
+    /* --- Screen action bar --- */
+    .previewA-actions { display:flex; gap:10px; align-items:center; padding:12px 16px; }
+    .btnA { border:1px solid var(--line); background:#fff; padding:8px 14px; border-radius:10px; cursor:pointer; }
+    .btnA.primaryA { background:#111827; color:#fff; border-color:#111827; }
+    .btnA.successA { background:#065f46; color:#fff; border-color:#065f46; }
+
+    /* Send form styling */
+    .send-formA { display:grid; grid-template-columns:1fr; gap:8px; padding:12px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+    .labelA { font-size:12px; color:#374151; }
+    .inputA { width:100%; border:1px solid #d1d5db; border-radius:10px; padding:10px 12px; font-size:14px; }
+    .inputA:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15); }
+
+    /* --- A4 sheet --- */
+    .printA-wrap { display:flex; justify-content:center; padding:16px; }
+    .sheetA {
+      width:210mm; min-height:297mm; background:#fff; color:#000;
+      box-shadow:0 10px 30px rgba(0,0,0,.1);
+      border:1px solid var(--line); border-radius:0;
+    }
+    .sheetA-body { padding:14mm; }
+
+    .invA-header { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding-bottom:8mm; }
+    .invA-brand { display:flex; gap:10px; align-items:center; }
+    .invA-logo { height:28mm; width:auto; object-fit:contain; }
+    .invA-title { margin:0; font-size:28px; line-height:1.1; }
+
+    .invA-meta { text-align:right; font-size:14px; }
+    .invA-block { display:flex; justify-content:space-between; gap:20mm; margin-top:8mm; font-size:14px; }
+    .invA-subtitle { font-weight:600; margin:0 0 3mm; }
+    .invA-strong { font-weight:700; }
+
+    .sectionA { margin-top:10mm; }
+    .invA-table { width:100%; border-collapse:collapse; font-size:14px; }
+    .invA-table th, .invA-table td { border-bottom:1px solid var(--line); padding:6px 4px; }
+    .invA-table thead th { text-align:left; font-weight:600; }
+    .trightA { text-align:right; }
+    .invA-totalRow td { border-top:2px solid #111827; border-bottom:none; padding-top:8px; }
+
+    /* --- Print rules: show ONLY the A4 sheet --- */
+    @media print {
+      @page { size:A4; margin:0; }
+      html, body { background:#fff !important; }
+      body * { visibility:hidden !important; }
+      .sheetA, .sheetA * { visibility:visible !important; }
+      .sheetA { position:absolute; left:0; top:0; box-shadow:none; border:none; }
+      .no-printA { display:none !important; }
+    }
+  </style>
+
+  <!-- Confirm + double-submit guard -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (!form.matches('.send-formA')) return;
+
+        // 1) Confirm first
+        const msg = form.dataset.confirm || 'Send this invoice?';
+        if (!confirm(msg)) {
+          e.preventDefault();
+          return;
+        }
+
+        // 2) Only if confirmed: disable the submit and show progress
+        const btn = form.querySelector('#sendBtn, button[type="submit"], input[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.dataset.origText = btn.textContent || btn.value || '';
+          if ('textContent' in btn) btn.textContent = 'Sending…';
+          if ('value' in btn) btn.value = 'Sending…';
+        }
+      });
+
+      // Re-enable if user returns via bfcache
+      window.addEventListener('pageshow', (evt) => {
+        if (evt.persisted) {
+          document.querySelectorAll('.send-formA button[type="submit"], .send-formA input[type="submit"]').forEach(b => {
+            b.disabled = false;
+            if (b.dataset.origText) {
+              if ('textContent' in b) b.textContent = b.dataset.origText;
+              if ('value' in b) b.value = b.dataset.origText;
+            }
+          });
+        }
+      });
+    });
+  </script>
 {% endblock %}

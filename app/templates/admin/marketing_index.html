@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+  {% include "components/admin_nav.html" %}
+
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+
+  <div class="p-6 max-w-5xl mx-auto">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="title">Marketing</h2>
+          <p class="muted">
+            Total clients: <strong>{{ clients|length }}</strong>
+          </p>
+        </div>
+        <div class="actions">
+          <input id="filter" class="input" placeholder="Filter clients… (name, email, status)">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="clients-table" class="table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Email</th>
+              <th class="hide-sm">Phone</th>
+              <th class="hide-sm">Type</th>
+              <th>Status</th>
+              <th class="nowrap">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in clients %}
+              <tr>
+                <td>
+                  <div class="name">{{ c.name }} {{ c.surname }}</div>
+                </td>
+                <td class="mono">{{ c.email }}</td>
+                <td class="hide-sm">{{ c.phone or '—' }}</td>
+                <td class="hide-sm">{{ c.clientType or '—' }}</td>
+                <td>
+                  {% set st = c.status or '—' %}
+                  <span class="badge {{ 
+                      'badge-green' if st=='Paid' else 
+                      'badge-emerald' if st=='Finished' else
+                      'badge-blue' if st=='Started' else
+                      'badge-yellow' if st=='Agreed' else
+                      'badge-gray' 
+                  }}">{{ st }}</span>
+                </td>
+                <td class="nowrap">
+                  <a class="btn btn-primary btn-compact" href="/admin/marketing/send/{{ c.id }}">Send</a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="empty">
+                  No clients yet. <a class="link" href="/admin/client/new">Create a client</a> to start sending campaigns.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.04); }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-end; padding:18px 20px 0; gap:12px; }
+    .title { font-size:22px; margin:0 0 4px; }
+    .muted { color:#6b7280; font-size:14px; }
+    .actions { display:flex; gap:10px; align-items:center; }
+    .input { padding:8px 10px; border:1px solid #d1d5db; border-radius:10px; min-width:240px; }
+    .table-wrap { overflow:auto; padding:18px 20px 20px; }
+    .table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; }
+    .table thead th { position:sticky; top:0; background:#f9fafb; border-bottom:1px solid #e5e7eb; text-align:left; padding:10px 12px; font-weight:600; }
+    .table tbody td { border-bottom:1px solid #f1f5f9; padding:10px 12px; vertical-align:middle; }
+    .table tbody tr:hover { background:#fbfdff; }
+    .nowrap { white-space:nowrap; }
+    .hide-sm { display:table-cell; }
+    .name { font-weight:600; color:#111827; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .btn { border:none; border-radius:10px; padding:8px 12px; cursor:pointer; text-decoration:none; display:inline-block; }
+    .btn-compact { padding:6px 10px; font-size:13px; }
+    .btn-primary { background:#2563eb; color:#fff; }
+    .btn-primary:hover { background:#1d4ed8; }
+    .link { color:#4f46e5; text-decoration:none; }
+    .link:hover { text-decoration:underline; }
+    .empty { text-align:center; color:#6b7280; padding:24px 12px; }
+    .badge { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid transparent; white-space:nowrap; }
+    .badge-green  { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+    .badge-emerald{ background:#ecfdf3; color:#065f46; border-color:#a7f3d0; }
+    .badge-blue   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .badge-yellow { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+    .badge-gray   { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+    @media (max-width: 780px) {
+      .card-header { flex-direction:column; align-items:flex-start; }
+      .input { width:100%; min-width:0; }
+      .hide-sm { display:none; }
+    }
+  </style>
+
+  <script>
+    // Simple client-side filter (name/email/status/phone/type)
+    const filter = document.getElementById('filter');
+    const rows = Array.from(document.querySelectorAll('#clients-table tbody tr'));
+    filter?.addEventListener('input', () => {
+      const q = (filter.value || '').toLowerCase().trim();
+      rows.forEach(r => {
+        // If it's the empty-state row, always show when no clients
+        if (r.querySelector('.empty')) { r.style.display = q ? 'none' : ''; return; }
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+  </script>
+{% endblock %}

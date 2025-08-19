@@ -123,9 +123,9 @@
       row.className = 'service-rowA';
 
       row.innerHTML = `
-        <input type="text" name="service_description[]" placeholder="Description"
+        <input type="text" name="service_description" placeholder="Description"
                class="descA p-2A borderA border-gray-300A rounded-mdA" required>
-        <input type="number" name="service_price[]" placeholder="Price"
+        <input type="number" name="service_price" placeholder="Price"
                class="priceA p-2A borderA border-gray-300A rounded-mdA" step="0.01" min="0" required>
         <button type="button" class="removeA" title="Remove">✕</button>
       `;
@@ -139,4 +139,13 @@
     // Ensure at least one row initially
     addServiceRow();
   </script>
+  <script>
+  const pre = "{{ preselect_client_id or '' }}";
+  if (pre) {
+    const sel = document.getElementById('client_id');
+    sel.value = pre;
+    sel.dispatchEvent(new Event('change'));
+  }
+</script>
+
 {% endblock %}

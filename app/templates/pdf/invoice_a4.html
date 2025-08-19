@@ -1,0 +1,152 @@
+<!-- app/templates/pdf/invoice.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ invoice_number or 'Invoice' }}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    :root { --ink:#111827; --muted:#6b7280; --line:#e5e7eb; }
+    body { font-family: Arial, Helvetica, sans-serif; color: var(--ink); font-size: 12px; }
+
+    /* Top logo centered */
+    .logo-wrap { text-align: center; margin-bottom: 8mm; }
+    .logo { height: 28mm; width: auto; object-fit: contain; }
+
+    /* Title + meta */
+    .title { text-align: center; font-size: 24px; margin: 0 0 2mm 0; }
+    .subtitle { text-align: center; color: var(--muted); margin: 0 0 6mm 0; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6mm;
+      margin-bottom: 8mm;
+    }
+    .meta-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6mm;
+    }
+    .meta-box h3 { margin: 0 0 3mm 0; font-size: 13px; }
+    .line { color: var(--muted); }
+
+    /* Services table */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--line);
+      padding: 6px 4px;
+    }
+    tbody td {
+      border-bottom: 1px solid var(--line);
+      padding: 6px 4px;
+    }
+    .tright { text-align: right; }
+    .tfoot td {
+      border-top: 2px solid #111827;
+      border-bottom: none;
+      font-weight: 700;
+      padding-top: 8px;
+    }
+
+    /* Notes + thanks */
+    .notes { margin-top: 10mm; }
+    .muted { color: var(--muted); }
+    .thanks {
+      margin-top: 8mm;
+      padding: 6mm;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 12.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Centered logo -->
+  {% if logo_src %}
+    <div class="logo-wrap">
+      <img class="logo" src="{{ logo_src }}" alt="Logo">
+    </div>
+  {% endif %}
+
+  <!-- Title + company line -->
+  <h1 class="title">Invoice {{ invoice_number }}</h1>
+  <div class="subtitle">{{ company_name }} • {{ company_site }}</div>
+
+  <!-- Meta + Parties -->
+  <div class="meta-grid">
+    <div class="meta-box">
+      <h3>Invoice details</h3>
+      <div class="line"><strong>Issue date:</strong>
+        {{ invoice.invoiceDate.strftime('%d/%m/%Y') if invoice else issue_date or '—' }}</div>
+      <div class="line"><strong>Due date:</strong>
+        {{ invoice.dueDate.strftime('%d/%m/%Y') if invoice else due_date or '—' }}</div>
+      <div class="line"><strong>Total:</strong> £{{ '%.2f' % total }}</div>
+    </div>
+
+    <div class="meta-box">
+      <h3>Bill To</h3>
+      <div class="line">
+        {{ (invoice.client.name ~ ' ' ~ invoice.client.surname) if invoice else (client.name ~ ' ' ~ client.surname) }}
+      </div>
+      <div class="line">{{ invoice.client.email if invoice else client.email }}</div>
+      <div class="line">{{ invoice.client.phone if invoice else client.phone }}</div>
+      <div class="line muted">
+        {{ (invoice.client.address if invoice else client.address) or '—' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-box" style="margin-bottom: 8mm;">
+    <h3>From</h3>
+    <div class="line"><strong>{{ company_name }}</strong></div>
+    <div class="line">{{ company_email }}</div>
+    <div class="line">{{ company_phone }} • {{ company_site }}</div>
+    <div class="line" style="margin-top: 3mm;"><strong>Account Name:</strong> {{ account_name }}</div>
+    <div class="line"><strong>Sort Code:</strong> {{ sort_code }}</div>
+    <div class="line"><strong>Account Number:</strong> {{ account_number }}</div>
+    <div class="line"><strong>IBAN:</strong> {{ iban }}</div>
+  </div>
+
+  <!-- Services -->
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="tright">Price (£)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.description if r.description is defined else r['description'] }}</td>
+          <td class="tright">£{{
+            '%.2f' % (r.price if r.price is defined else r['price'])
+          }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="tfoot">
+        <td class="tright">Total:</td>
+        <td class="tright">£{{ '%.2f' % total }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  {% if notes %}
+    <div class="notes">
+      <strong>Notes</strong>
+      <div class="muted">{{ notes }}</div>
+    </div>
+  {% endif %}
+
+  <div class="thanks">
+    <p style="margin:0 0 6px 0;"><strong>Thank you for your business.</strong></p>
+    <p style="margin:0;">If you have any questions about this invoice, just reply to this email.</p>
+  </div>
+
+</body>
+</html>

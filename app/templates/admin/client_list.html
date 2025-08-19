@@ -56,7 +56,18 @@
               </td>
               <td class="px-4A py-2A space-y-1A">
                 <a href="/admin/client/edit/{{ client.id }}" class="text-indigo-600A hover-underlineA blockA">Edit</a>
-                <a href="/admin/client/delete/{{ client.id }}" class="text-red-600A hover-underlineA blockA">Delete</a>
+
+                <!-- DELETE as POST + confirm -->
+                <form method="post"
+                      action="/admin/client/delete/{{ client.id }}"
+                      onsubmit="return confirm('Delete {{ client.name }} {{ client.surname }}? This will also remove their invoices.');"
+                      style="display:block;margin:0;padding:0;">
+                  <button type="submit"
+                          class="text-red-600A hover-underlineA blockA bg-transparent border-0 p-0 cursor-pointer">
+                    Delete
+                  </button>
+                </form>
+
                 <a href="/admin/invoice/create/{{ client.id }}" class="text-green-600A hover-underlineA blockA">Send Invoice</a>
                 <a href="/admin/client/{{ client.id }}/invoices" class="text-purple-600A hover-underlineA blockA">View Invoices</a>
                 <a href="/admin/marketing/send/{{ client.id }}" class="text-yellow-600A hover-underlineA blockA">Send Marketing</a>

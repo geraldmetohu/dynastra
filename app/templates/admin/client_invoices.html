@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+  {% include "components/admin_nav.html" %}
+
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/admin.css') }}">
+
+  <div class="p-6 max-w-5xl mx-auto">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="title">Invoices for {{ client.name }} {{ client.surname }}</h2>
+          <p class="muted">
+            Total invoices: <strong>{{ invoices|length }}</strong>
+            · Total amount: <strong>£{{ '%.2f' % (invoices|sum(attribute='total') or 0) }}</strong>
+            · Unsent: <strong>{{ invoices|selectattr('sent', 'equalto', False)|list|length }}</strong>
+          </p>
+        </div>
+        <div class="actions">
+          <a href="/admin/invoice/create/{{ client.id }}" class="btn btn-primary">+ New Invoice</a>
+          <input id="filter" class="input" placeholder="Filter… (date, amount, sent)"/>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="inv-table" class="table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Date</th>
+              <th>Due</th>
+              <th class="right">Total</th>
+              <th>Sent</th>
+              <th class="nowrap">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in invoices %}
+              {% set short = inv.id[:6] %}
+              <tr>
+                <td class="muted">INV-{{ inv.invoiceDate.strftime('%Y%m%d') }}-{{ short }}</td>
+                <td>{{ inv.invoiceDate.strftime('%Y-%m-%d') }}</td>
+                <td>{{ inv.dueDate.strftime('%Y-%m-%d') }}</td>
+                <td class="right">£{{ '%.2f' % inv.total }}</td>
+                <td>
+                  {% if inv.sent %}
+                    <span class="badge badge-green">Sent</span>
+                  {% else %}
+                    <span class="badge badge-gray">Not sent</span>
+                  {% endif %}
+                </td>
+                <td class="nowrap">
+                  <a class="link" href="/admin/invoice/{{ inv.id }}/preview">Preview</a>
+                  {% if inv.pdfPath %}
+                    <a class="link" href="{{ inv.pdfPath }}" target="_blank">PDF</a>
+                  {% endif %}
+                <form method="post"
+                    action="/admin/invoice/send/{{ inv.id }}"
+                    style="display:inline"
+                    data-confirm="Send invoice INV-{{ inv.invoiceDate.strftime('%Y%m%d') }}-{{ short }} to {{ client.email }}?"
+                    onsubmit="return confirm(this.dataset.confirm);">
+                <button class="text-green-700 underline" type="submit" {% if inv.sent %}disabled title="Already sent"{% endif %}>
+                    Send
+                </button>
+                </form>
+
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="empty">
+                  No invoices yet. <a class="link" href="/admin/invoice/create/{{ client.id }}">Create your first invoice.</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.04); }
+    .card-header { display:flex; gap:12px; justify-content:space-between; align-items:flex-end; padding:18px 20px 0; }
+    .title { font-size:22px; margin:0 0 4px; }
+    .muted { color:#6b7280; font-size:14px; }
+    .actions { display:flex; gap:10px; align-items:center; }
+    .btn { border:none; border-radius:10px; padding:8px 12px; cursor:pointer; text-decoration:none; display:inline-block; }
+    .btn-primary { background:#2563eb; color:#fff; }
+    .input { padding:8px 10px; border:1px solid #d1d5db; border-radius:10px; min-width:220px; }
+    .table-wrap { overflow:auto; padding:18px 20px 20px; }
+    .table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; }
+    .table thead th { position:sticky; top:0; background:#f9fafb; border-bottom:1px solid #e5e7eb; text-align:left; padding:10px 12px; font-weight:600; }
+    .table tbody td { border-bottom:1px solid #f1f5f9; padding:10px 12px; vertical-align:middle; }
+    .table tbody tr:hover { background:#fbfdff; }
+    .right { text-align:right; }
+    .nowrap { white-space:nowrap; }
+    .badge { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid transparent; }
+    .badge-green { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+    .badge-gray  { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+    .link { color:#4f46e5; text-decoration:none; margin-right:10px; }
+    .link:hover { text-decoration:underline; }
+    .link-green { color:#047857; background:none; border:none; padding:0; }
+    .link-green[disabled] { color:#9ca3af; cursor:not-allowed; text-decoration:none; }
+    .empty { text-align:center; color:#6b7280; padding:24px 12px; }
+    @media (max-width: 720px) {
+      .card-header { flex-direction:column; align-items:flex-start; gap:8px; }
+      .actions { width:100%; }
+      .input { flex:1; min-width:0; width:100%; }
+      .nowrap { white-space:normal; }
+    }
+  </style>
+
+  <script>
+    // Simple client-side filter
+    const filter = document.getElementById('filter');
+    const rows = Array.from(document.querySelectorAll('#inv-table tbody tr'));
+    filter?.addEventListener('input', () => {
+      const q = filter.value.toLowerCase().trim();
+      rows.forEach(r => {
+        const txt = r.innerText.toLowerCase();
+        r.style.display = txt.includes(q) ? '' : 'none';
+      });
+    });
+  </script>
+{% endblock %}
