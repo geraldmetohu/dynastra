@@ -1,32 +1,27 @@
 {
+  "name": "dynastratech",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "next build",
+    "start": "next start"
+  },
+
   "dependencies": {
     "@prisma/client": "^6.13.0",
     "firebase": "^12.0.0",
-    "next": "^16.1.4",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "next": "16.1.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "zod": "^4.0.15"
   },
+
   "devDependencies": {
-    "prisma": "^6.14.0"
-  },
-  "name": "dynastratech",
-  "version": "1.0.0",
-  "description": "��#\u0000 \u0000d\u0000y\u0000n\u0000a\u0000s\u0000t\u0000r\u0000a\u0000\r\u0000 \u0000",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/geraldmetohu/dynastra.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/geraldmetohu/dynastra/issues"
-  },
-  "homepage": "https://github.com/geraldmetohu/dynastra#readme"
+    "prisma": "^6.14.0",
+    "typescript": "^5"
+  }
 }
