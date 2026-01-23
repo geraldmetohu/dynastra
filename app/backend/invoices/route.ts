@@ -3,7 +3,8 @@
 import { z } from 'zod';
 import { prisma } from '../../api/lib/prisma';
 
-// Schema for validation
+import { NextResponse } from "next/server";
+
 const schema = z.object({
   clientId: z.string(),
   invoiceType: z.string(),
@@ -13,10 +14,12 @@ const schema = z.object({
   sortCode: z.string(),
   accountNumber: z.string(),
   iban: z.string().optional(),
-  services: z.array(z.object({
-    description: z.string(),
-    price: z.number(),
-  })),
+  services: z.array(
+    z.object({
+      description: z.string(),
+      price: z.number(),
+    })
+  ),
   total: z.number(),
 });
 
@@ -35,26 +38,20 @@ export async function POST(req: Request) {
         accountName: data.accountName,
         sortCode: data.sortCode,
         accountNumber: data.accountNumber,
-        iban: data.iban || null,
+        iban: data.iban ?? null,
         services: {
-          create: data.services.map(service => ({
-            description: service.description,
-            price: service.price,
-          })),
+          create: data.services,
         },
       },
-      include: { services: true }, // optional
+      include: { services: true },
     });
 
-    return new Response(JSON.stringify(invoice), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json(invoice);
   } catch (err) {
-    console.error('API error:', err);
-    return new Response(JSON.stringify({ error: 'Invalid data or server error.' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error(err);
+    return NextResponse.json(
+      { error: "Invalid data or server error" },
+      { status: 400 }
+    );
   }
 }
