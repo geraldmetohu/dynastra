@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import asyncio
 from pathlib import Path
+from types import SimpleNamespace
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,26 +14,8 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 
-# Prisma client wrapper you already use
-from app.db import prisma
-from app.internal.load_data import load_internal_data
-
-# Routers (your existing modular routes)
-from app.routes import (
-    home as home_routes,
-    about,
-    services,
-    pricing,
-    contact,
-    admin_auth,
-    admin_clients,
-    admin_invoices,
-    admin_marketing,
-
-)
-
-# Our background scheduler (recurring invoices & marketing)
-from app.core import scheduler
+# Public routers
+from app.routes import home as home_routes, about, services, pricing, contact
 
 load_dotenv()
 
@@ -45,27 +28,56 @@ TEMPLATES_DIR = APP_DIR / "templates"
 def _is_vercel() -> bool:
     return os.getenv("VERCEL") == "1"
 
+
+def _load_admin_stack():
+    from app.db import prisma
+    from app.internal.load_data import load_internal_data
+    from app.core import scheduler
+    from app.routes import admin_auth, admin_clients, admin_invoices, admin_marketing
+
+    return SimpleNamespace(
+        prisma=prisma,
+        load_internal_data=load_internal_data,
+        scheduler=scheduler,
+        routers=[admin_marketing.router, admin_invoices.router, admin_clients.router, admin_auth.router],
+    )
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.db_available = False
+    app.state.admin_available = False
+    app.state.admin_error = None
+    app.state.prisma = None
+    app.state.scheduler = None
+
+    try:
+        admin_stack = _load_admin_stack()
+        app.state.admin_available = True
+        app.state.prisma = admin_stack.prisma
+        app.state.scheduler = admin_stack.scheduler
+    except Exception as exc:
+        app.state.admin_error = str(exc)
+        print(f"⚠️ Admin stack unavailable: {exc}")
+        admin_stack = None
 
     # --- Startup ---
-    print("🔄 Connecting to the database...")
-    try:
-        await prisma.connect()
-        app.state.db_available = True
-        print("✅ DB connected.")
-    except Exception as exc:
-        app.state.db_available = False
-        print(f"⚠️ Database startup skipped: {exc}")
+    if admin_stack is not None:
+        print("🔄 Connecting to the database...")
+        try:
+            await admin_stack.prisma.connect()
+            app.state.db_available = True
+            print("✅ DB connected.")
+        except Exception as exc:
+            app.state.db_available = False
+            print(f"⚠️ Database startup skipped: {exc}")
 
     # Warm internal cache without blocking startup on long-running environments.
-    if app.state.db_available and not _is_vercel():
-        asyncio.create_task(load_internal_data())
+    if admin_stack is not None and app.state.db_available and not _is_vercel():
+        asyncio.create_task(admin_stack.load_internal_data())
 
         # APScheduler is not suitable for Vercel's serverless runtime.
         try:
-            scheduler.start()
+            admin_stack.scheduler.start()
             print("⏰ Scheduler started.")
         except Exception as exc:
             print(f"⚠️ Scheduler startup skipped: {exc}")
@@ -74,17 +86,17 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         # --- Shutdown ---
-        if not _is_vercel():
+        if admin_stack is not None and not _is_vercel():
             print("🛑 Stopping scheduler...")
             try:
-                scheduler.scheduler.shutdown(wait=False)
+                admin_stack.scheduler.scheduler.shutdown(wait=False)
             except Exception:
                 pass
 
-        if app.state.db_available:
+        if admin_stack is not None and app.state.db_available:
             print("🔌 Disconnecting from the database...")
             try:
-                await prisma.disconnect()
+                await admin_stack.prisma.disconnect()
                 print("✅ DB disconnected.")
             except Exception as exc:
                 print(f"⚠️ Database shutdown skipped: {exc}")
@@ -138,17 +150,25 @@ async def legacy_login_redirect():
 # Admin dashboard (kept simple — you already gate with session)
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
+    if not request.app.state.admin_available:
+        return HTMLResponse("Admin temporarily unavailable on this deployment.", status_code=503)
     if not request.session.get("is_admin"):
         return RedirectResponse("/admin/login", status_code=303)
     return app.templates.TemplateResponse("admin/dashboard.html", {"request": request})
 
-# Routers
-app.include_router(admin_marketing.router)
-app.include_router(admin_invoices.router)
-app.include_router(admin_clients.router)
 app.include_router(home_routes.router)
 app.include_router(about.router)
 app.include_router(services.router)
 app.include_router(pricing.router)
 app.include_router(contact.router)
-app.include_router(admin_auth.router)
+
+try:
+    _admin_stack = _load_admin_stack()
+except Exception as exc:
+    app.state.admin_available = False
+    app.state.admin_error = str(exc)
+    print(f"⚠️ Skipping admin router registration: {exc}")
+else:
+    app.state.admin_available = True
+    for router in _admin_stack.routers:
+        app.include_router(router)
