@@ -35,6 +35,10 @@ from app.core import scheduler
 
 load_dotenv()
 
+
+def _is_vercel() -> bool:
+    return os.getenv("VERCEL") == "1"
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- Startup ---
@@ -42,22 +46,24 @@ async def lifespan(app: FastAPI):
     await prisma.connect()
     print("✅ DB connected.")
 
-    # Warm internal cache without blocking startup
-    asyncio.create_task(load_internal_data())
+    # Warm internal cache without blocking startup on long-running environments.
+    if not _is_vercel():
+        asyncio.create_task(load_internal_data())
 
-    # Start APScheduler jobs
-    scheduler.start()
-    print("⏰ Scheduler started.")
+        # APScheduler is not suitable for Vercel's serverless runtime.
+        scheduler.start()
+        print("⏰ Scheduler started.")
 
     try:
         yield
     finally:
         # --- Shutdown ---
-        print("🛑 Stopping scheduler...")
-        try:
-            scheduler.scheduler.shutdown(wait=False)
-        except Exception:
-            pass
+        if not _is_vercel():
+            print("🛑 Stopping scheduler...")
+            try:
+                scheduler.scheduler.shutdown(wait=False)
+            except Exception:
+                pass
 
         print("🔌 Disconnecting from the database...")
         await prisma.disconnect()

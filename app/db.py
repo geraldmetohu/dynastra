@@ -1,4 +1,6 @@
-# from app.generated.prisma import Prisma   # ❌
-from prisma import Prisma                    # ✅
+try:
+    from app.generated.prisma import Prisma
+except ImportError:
+    from prisma import Prisma
 
 prisma = Prisma()

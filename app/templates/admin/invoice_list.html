@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "components/admin_nav.html" %}
+
+<section class="section">
+  <div class="container">
+    <h1 class="section-title">Invoices</h1>
+    {% if invoices %}
+      <div class="plans-grid">
+        {% for invoice in invoices %}
+          <article class="plan-card">
+            <h3>{{ invoice.client.name }} {{ invoice.client.surname }}</h3>
+            <p><strong>Issued:</strong> {{ invoice.invoiceDate.strftime("%d %b %Y") }}</p>
+            <p><strong>Due:</strong> {{ invoice.dueDate.strftime("%d %b %Y") }}</p>
+            <p><strong>Total:</strong> £{{ "%.2f"|format(invoice.total) }}</p>
+            <p><strong>Status:</strong> {{ "Sent" if invoice.sent else "Draft" }}</p>
+            <a href="/admin/invoice/{{ invoice.id }}/preview" class="button button-secondary">Open invoice</a>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="section-description">No invoices have been created yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

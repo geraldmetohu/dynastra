@@ -1,7 +1,10 @@
 import os
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-from prisma import Prisma
+try:
+    from app.generated.prisma import Prisma
+except ImportError:
+    from prisma import Prisma
 from app.core.email_utils import send_email
 from app.core.pdf_utils2 import render_invoice_html, html_to_pdf
 
