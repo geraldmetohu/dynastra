@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 import os
 import asyncio
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,24 +36,39 @@ from app.core import scheduler
 
 load_dotenv()
 
+BASE_DIR = Path(__file__).resolve().parent
+APP_DIR = BASE_DIR / "app"
+STATIC_DIR = APP_DIR / "static"
+TEMPLATES_DIR = APP_DIR / "templates"
+
 
 def _is_vercel() -> bool:
     return os.getenv("VERCEL") == "1"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.db_available = False
+
     # --- Startup ---
     print("🔄 Connecting to the database...")
-    await prisma.connect()
-    print("✅ DB connected.")
+    try:
+        await prisma.connect()
+        app.state.db_available = True
+        print("✅ DB connected.")
+    except Exception as exc:
+        app.state.db_available = False
+        print(f"⚠️ Database startup skipped: {exc}")
 
     # Warm internal cache without blocking startup on long-running environments.
-    if not _is_vercel():
+    if app.state.db_available and not _is_vercel():
         asyncio.create_task(load_internal_data())
 
         # APScheduler is not suitable for Vercel's serverless runtime.
-        scheduler.start()
-        print("⏰ Scheduler started.")
+        try:
+            scheduler.start()
+            print("⏰ Scheduler started.")
+        except Exception as exc:
+            print(f"⚠️ Scheduler startup skipped: {exc}")
 
     try:
         yield
@@ -65,9 +81,13 @@ async def lifespan(app: FastAPI):
             except Exception:
                 pass
 
-        print("🔌 Disconnecting from the database...")
-        await prisma.disconnect()
-        print("✅ DB disconnected.")
+        if app.state.db_available:
+            print("🔌 Disconnecting from the database...")
+            try:
+                await prisma.disconnect()
+                print("✅ DB disconnected.")
+            except Exception as exc:
+                print(f"⚠️ Database shutdown skipped: {exc}")
 
 app = FastAPI(title="Dynastra Tech", lifespan=lifespan)
 
@@ -87,8 +107,8 @@ app.add_middleware(
 )
 
 # Static & templates
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals["current_year"] = datetime.now().year
 # expose templates both ways (for old/new code paths)
 app.templates = templates
